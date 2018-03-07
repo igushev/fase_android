@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/white"/>
+        </shape>
+    </item>
+    <!-- TODO set image for background -->
+    <!--<item>-->
+    <!--<bitmap-->
+    <!--android:src="@drawable/logo_splash"-->
+    <!--android:gravity="center"/>-->
+    <!--</item>-->
+</layer-list>

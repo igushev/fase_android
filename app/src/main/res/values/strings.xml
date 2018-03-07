@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Fase</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="error_occurred">Error occurred</string>
+    <string name="network_connection_problem">Network connection problem</string>
+    <string name="server_internal_error">Server Internal Error</string>
+    <string name="message_no_internet">No internet connection.\nPlease, check your internet connection and try again</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="please_wait">Please wait</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="choose_date_title">Choose date</string>
+    <string name="choose_time_title">Choose time</string>
+</resources>
