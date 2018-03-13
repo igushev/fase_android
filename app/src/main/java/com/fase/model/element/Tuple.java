@@ -1,11 +1,9 @@
 package com.fase.model.element;
 
-import java.util.List;
-
 public class Tuple {
 
     private String elementId;
-    private List<Element> elements;
+    private Element element;
 
     public Tuple() {
     }
@@ -18,11 +16,11 @@ public class Tuple {
         this.elementId = elementId;
     }
 
-    public List<Element> getElements() {
-        return elements;
+    public Element getElement() {
+        return element;
     }
 
-    public void setElements(List<Element> elements) {
-        this.elements = elements;
+    public void setElement(Element element) {
+        this.element = element;
     }
 }

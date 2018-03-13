@@ -20,6 +20,7 @@ public class User {
     private Date datetimeAdded;
     @SerializedName("user_id")
     private String userId;
+    protected Locale locale;
 
     public User() {
     }
@@ -78,5 +79,13 @@ public class User {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 }

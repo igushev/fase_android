@@ -1,6 +1,5 @@
 package com.fase.core.serializers;
 
-import com.fase.model.element.Element;
 import com.fase.model.element.Tuple;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -16,10 +15,8 @@ public class TupleSerializer implements JsonSerializer<Tuple> {
         if (src != null) {
             JsonArray elements = new JsonArray();
             elements.add(src.getElementId());
-            if (src.getElements() != null && !src.getElements().isEmpty()) {
-                for (Element element : src.getElements()) {
-                    elements.add(context.serialize(element));
-                }
+            if (src.getElement() != null) {
+                elements.add(context.serialize(src.getElement()));
             }
             return elements;
         }

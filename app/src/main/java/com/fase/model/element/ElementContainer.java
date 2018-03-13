@@ -7,7 +7,7 @@ import java.util.List;
 public class ElementContainer extends Element {
 
     @SerializedName("id_element_list")
-    protected List<Tuple> idElementList;
+    private List<Tuple> idElementList;
 
     public ElementContainer() {
     }

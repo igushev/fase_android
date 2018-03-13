@@ -9,7 +9,7 @@ public class Select extends VisualElement {
     private List<String> items;
     private Alight alight;
     private String value;
-    private String text;
+    private String hint;
 
     public Select() {
     }
@@ -38,11 +38,11 @@ public class Select extends VisualElement {
         this.value = value;
     }
 
-    public String getText() {
-        return text;
+    public String getHint() {
+        return hint;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setHint(String hint) {
+        this.hint = hint;
     }
 }

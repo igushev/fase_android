@@ -2,16 +2,25 @@ package com.fase.model.element;
 
 public class Image extends VisualElement {
 
-    private String image;
+    private String filename;
+    private String url;
 
     public Image() {
     }
 
-    public String getImage() {
-        return image;
+    public String getFilename() {
+        return filename;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

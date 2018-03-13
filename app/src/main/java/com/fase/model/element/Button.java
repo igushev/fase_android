@@ -6,7 +6,6 @@ public class Button extends VisualElement {
 
     @SerializedName("on_click")
     private Function onClick;
-    private String image;
     private String text;
 
     public Button() {
@@ -18,14 +17,6 @@ public class Button extends VisualElement {
 
     public void setOnClick(Function onClick) {
         this.onClick = onClick;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public String getText() {

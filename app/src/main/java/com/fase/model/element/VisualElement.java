@@ -5,10 +5,10 @@ import com.google.gson.annotations.SerializedName;
 
 public class VisualElement extends ElementContainer {
 
-    protected Boolean displayed;
-    protected Locale locale;
+    private Boolean displayed;
+    private Locale locale;
     @SerializedName("request_locale")
-    protected Boolean requestLocale;
+    private Boolean requestLocale;
 
     public VisualElement() {
     }

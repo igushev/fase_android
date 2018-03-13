@@ -7,7 +7,7 @@ import java.util.Date;
 
 public class DateTimePicker extends VisualElement {
 
-    private Date date;
+    private Date datetime;
     private Size size;
     private DateTimePickerType type;
     private String hint;
@@ -15,12 +15,12 @@ public class DateTimePicker extends VisualElement {
     public DateTimePicker() {
     }
 
-    public Date getDate() {
-        return date;
+    public Date getDatetime() {
+        return datetime;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDatetime(Date datetime) {
+        this.datetime = datetime;
     }
 
     public Size getSize() {

@@ -1,12 +1,14 @@
 package com.fase.model.element;
 
 import com.fase.model.enums.fase.Size;
+import com.fase.model.enums.fase.Type;
 
 public class Text extends VisualElement {
 
     private Size size;
     private String text;
     private String hint;
+    private Type type;
 
     public Text() {
     }
@@ -33,5 +35,13 @@ public class Text extends VisualElement {
 
     public void setHint(String hint) {
         this.hint = hint;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 }
