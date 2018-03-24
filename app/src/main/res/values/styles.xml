@@ -46,4 +46,9 @@
         <item name="android:windowExitAnimation">@anim/grow_out</item>
     </style>
 
+    <style name="DatePicker">
+        <item name="android:datePickerMode">spinner</item>
+        <item name="android:calendarViewShown">false</item>
+    </style>
+
 </resources>

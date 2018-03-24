@@ -1,18 +1,23 @@
 package com.fase.util;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.fase.FaseApp;
 import com.fase.base.BasePresenter;
 import com.fase.base.BaseView;
 import com.fase.model.exception.NoNetworkException;
 
+import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
+import io.reactivex.MaybeTransformer;
 import io.reactivex.ObservableTransformer;
+import io.reactivex.Single;
 import io.reactivex.SingleTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class RxUtil {
@@ -42,6 +47,12 @@ public class RxUtil {
     }
 
     public static CompletableTransformer applyCompletableIoAndMainSchedulers() {
+        return tObservable -> tObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static <T> MaybeTransformer<T, T> applyMaybeIoAndMainSchedulers() {
         return tObservable -> tObservable
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
@@ -113,5 +124,28 @@ public class RxUtil {
             disposable.dispose();
             throw new NoNetworkException("No network connection");
         }
+    }
+
+    /**
+     * Receives a {@link Completable} and returns a {@link Single<Boolean>} that emits <code>true</code>
+     * if the <code>Completable</code> completes successful, <code>false</code> otherwise.
+     * An action to be performed in case or error can also be passed through the argument
+     * <code>exceptionConsumer</code>.
+     *
+     * @param completable       The input {@link Completable}
+     * @param exceptionConsumer A consumer to process the exception (eg log it) in case the {@link Completable}
+     *                          terminates with an error.
+     * @return The {@link Single<Boolean>}, as described above.
+     */
+    public static Single<Boolean> toSingle(@NonNull Completable completable,
+                                           @Nullable Consumer<? super Throwable> exceptionConsumer) {
+        return completable.doOnError(exceptionConsumer == null ? throwable -> {
+        } : exceptionConsumer)
+                .toSingleDefault(true)
+                .onErrorReturnItem(false);
+    }
+
+    public static Single<Boolean> toSingle(@NonNull Completable completable) {
+        return toSingle(completable, null);
     }
 }

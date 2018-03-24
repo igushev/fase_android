@@ -2,4 +2,6 @@
 <resources>
     <item type="id" name="POSITION_KEY"/>
     <item type="id" name="ID_KEY"/>
+    <item type="id" name="ELEMENT_TAG"/>
+    <item type="id" name="ELEMENT_ID_TAG"/>
 </resources>

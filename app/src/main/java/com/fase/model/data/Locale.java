@@ -10,6 +10,10 @@ public class Locale {
     public Locale() {
     }
 
+    public Locale(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
     public String getCountryCode() {
         return countryCode;
     }

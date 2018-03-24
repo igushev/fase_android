@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 27
@@ -45,13 +46,16 @@ android {
 
     buildTypes {
         all {
+            buildConfigField 'Integer', 'DB_VERSION', '1'
+            buildConfigField 'String', 'DB_NAME', '"faseDb"'
             buildConfigField 'Integer', 'CONNECTION_TIMEOUT', '30'
             buildConfigField 'String', 'SHARED_PREFS_NAME', '"faseSharedPrefs"'
             buildConfigField 'String', 'SECURE_SHARED_PREFS_KEY', '"59f1060c-8fa1-4967-9566-98e713aaa429"'
-            buildConfigField 'String', 'API_HOST', '"http://notes-fase-env-test1.us-west-2.elasticbeanstalk.com"' // notes
-//            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com"' // hello world
+//            buildConfigField 'String', 'API_HOST', '"http://notes-fase-env-test1.us-west-2.elasticbeanstalk.com"' // notes
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com"' // hello world
 
             buildConfigField 'String', 'DEVICE_TYPE', '"Android"'
+            buildConfigField 'Integer', 'ELEMENT_UPDATE_TIME', '2'
         }
 
         debug {
@@ -61,8 +65,8 @@ android {
 
         release {
             debuggable false
-            minifyEnabled true
-            useProguard true
+            minifyEnabled false
+            useProguard false
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -105,7 +109,7 @@ ext {
     rxPermisiions = "0.9.5"
     retrofitLibs = "2.3.0"
     okhttpLibs = "3.9.1"
-    jobDispatcher = "0.8.5"
+    glide = "4.6.1"
 }
 
 dependencies {
@@ -133,7 +137,8 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:$okhttpLibs"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttpLibs"
 
-    implementation "com.firebase:firebase-jobdispatcher:$jobDispatcher"
+    implementation "com.github.bumptech.glide:glide:$glide"
+    annotationProcessor "com.github.bumptech.glide:compiler:$glide"
 }
 
 configurations.all {

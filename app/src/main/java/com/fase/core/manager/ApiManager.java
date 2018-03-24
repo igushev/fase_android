@@ -122,8 +122,8 @@ class ApiManager {
         return mApi.screenUpdate(sessionId, screenId, screenUpdate);
     }
 
-    Single<Response> screenUpdate(String sessionId, String screenId, ElementCallback elementCallback) {
-        return mApi.screenUpdate(sessionId, screenId, elementCallback);
+    Single<Response> elementСallback(String sessionId, String screenId, ElementCallback elementCallback) {
+        return mApi.elementСallback(sessionId, screenId, elementCallback);
     }
 
     Single<ResponseBody> getResource(String fileName) {

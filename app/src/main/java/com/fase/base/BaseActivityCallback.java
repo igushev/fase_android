@@ -29,7 +29,7 @@ public interface BaseActivityCallback {
 
     void showBackButton();
 
-    void hideBackButton();
+    void showNavigationBurger();
 
     void hideNavigationButton();
 

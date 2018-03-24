@@ -114,7 +114,7 @@ public abstract class BaseFragment extends MvpAppCompatFragment {
     }
 
     public void hideBackButton() {
-        mBaseActivityCallback.hideBackButton();
+        mBaseActivityCallback.showNavigationBurger();
     }
 
     public void hideNavigationButton() {

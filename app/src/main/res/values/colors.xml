@@ -5,7 +5,11 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="recycler_divider">#999999</color>
+    <color name="border">#999999</color>
 
     <color name="menu_item_text_pressed">#494949</color>
     <color name="menu_item_text">#000000</color>
+
+    <item name="droppy_separator" type="color">#FFBBBBBB</item>
+    <item name="droppy_title_color" type="color">#FF333333</item>
 </resources>

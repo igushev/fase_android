@@ -238,7 +238,7 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
     }
 
     @Override
-    public void hideBackButton() {
+    public void showNavigationBurger() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             if (mDrawerToggle != null) {

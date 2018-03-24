@@ -15,6 +15,8 @@ public class SharedPrefManager {
 
     private static final String EMAIL = "email";
     private static final String USER_ID = "userId";
+    private static final String CURRENT_SCREEN_ID = "currentScreenId";
+    private static final String CURRENT_SESSION_ID = "currentSessionId";
 
     private static final String DEVICE_TOKEN = "deviceToken";
 
@@ -22,6 +24,8 @@ public class SharedPrefManager {
     private SecurePreferences mSecurePreferences;
     private CachedValue<Long> mUserId;
     private CachedValue<String> mDeviceToken;
+    private CachedValue<String> mCurrentScreenId;
+    private CachedValue<String> mCurrentSessionId;
 
     static synchronized SharedPrefManager getInstance() {
         if (mSingleton == null) {
@@ -45,6 +49,8 @@ public class SharedPrefManager {
     private void initCachedValues() {
         mUserId = mCachedValueFactory.getValue(USER_ID, -1L, Long.class);
         mDeviceToken = mCachedValueFactory.getValue(DEVICE_TOKEN, String.class);
+        mCurrentScreenId = mCachedValueFactory.getValue(CURRENT_SCREEN_ID, String.class);
+        mCurrentSessionId = mCachedValueFactory.getValue(CURRENT_SESSION_ID, String.class);
     }
 
     /**
@@ -56,6 +62,22 @@ public class SharedPrefManager {
 
     String getDeviceToken() {
         return mDeviceToken.getValue();
+    }
+
+    void setCurrentScreenId(String screenId) {
+        mCurrentScreenId.setValue(screenId);
+    }
+
+    String getCurrentScreenId() {
+        return mCurrentScreenId.getValue();
+    }
+
+    void setCurrentSessionId(String sessionId) {
+        mCurrentSessionId.setValue(sessionId);
+    }
+
+    String getCurrentSessionId() {
+        return mCurrentSessionId.getValue();
     }
 
     void setEmail(String email) {

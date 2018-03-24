@@ -9,6 +9,7 @@ public class Text extends VisualElement {
     private String text;
     private String hint;
     private Type type;
+    private Boolean multiline;
 
     public Text() {
     }
@@ -43,5 +44,13 @@ public class Text extends VisualElement {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Boolean getMultiline() {
+        return multiline;
+    }
+
+    public void setMultiline(Boolean multiline) {
+        this.multiline = multiline;
     }
 }

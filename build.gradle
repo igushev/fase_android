@@ -1,5 +1,6 @@
 buildscript {
     ext.gradleVersion = '3.0.1'
+    ext.realm = '5.0.0'
 
     repositories {
         google()
@@ -7,6 +8,7 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
+        classpath "io.realm:realm-gradle-plugin:$realm"
     }
 }
 
@@ -15,6 +17,7 @@ allprojects {
         google()
         maven { url "https://maven.google.com" }
         jcenter()
+        mavenCentral()
     }
 }
 

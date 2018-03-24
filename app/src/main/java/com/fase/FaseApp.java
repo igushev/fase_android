@@ -8,6 +8,7 @@ import com.fase.util.CrashReportingTree;
 import net.danlew.android.joda.JodaTimeAndroid;
 
 import io.reactivex.plugins.RxJavaPlugins;
+import io.realm.Realm;
 import timber.log.Timber;
 
 public class FaseApp extends Application {
@@ -34,7 +35,9 @@ public class FaseApp extends Application {
 //                .build());
 
         JodaTimeAndroid.init(this);
+        Realm.init(this);
         RxJavaPlugins.setErrorHandler(Timber::e);
+
     }
 
 //    public static void logUserInCrashlytics(String email, String fullName) {

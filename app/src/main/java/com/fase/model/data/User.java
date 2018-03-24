@@ -20,7 +20,7 @@ public class User {
     private Date datetimeAdded;
     @SerializedName("user_id")
     private String userId;
-    protected Locale locale;
+    private Locale locale;
 
     public User() {
     }

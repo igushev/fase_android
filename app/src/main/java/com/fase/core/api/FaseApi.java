@@ -28,15 +28,15 @@ public interface FaseApi {
     Single<Status> sendServiceCommand(@Body Command command);
 
     @POST("/getscreen")
-    Single<Response> getScreen(@Header("session_id") String sessionId, @Body Device device);
+    Single<Response> getScreen(@Header("session-id") String sessionId, @Body Device device);
 
     @POST("/screenupdate")
-    Single<Response> screenUpdate(@Header("session_id") String sessionId, @Header("screen_id") String screenId, @Body ScreenUpdate screenUpdate);
+    Single<Response> screenUpdate(@Header("session-id") String sessionId, @Header("screen-id") String screenId, @Body ScreenUpdate screenUpdate);
 
     @POST("/elementcallback")
-    Single<Response> screenUpdate(@Header("session_id") String sessionId, @Header("screen_id") String screenId, @Body ElementCallback elementCallback);
+    Single<Response> elementСallback(@Header("session-id") String sessionId, @Header("screen-id") String screenId, @Body ElementCallback elementCallback);
 
     @Streaming
-    @GET("/getresource/{filename}/")
-    Single<ResponseBody> getResource(@Path("filename") String fileName);
+    @GET("/getresource/filename/{filename}")
+    Single<ResponseBody> getResource(@Path(value = "filename", encoded = true) String fileName);
 }
