@@ -5,8 +5,6 @@ import android.support.annotation.StringRes;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 
-import com.fase.base.navigator.Navigator;
-
 public interface BaseActivityCallback {
 
     Context getContext();
@@ -41,11 +39,5 @@ public interface BaseActivityCallback {
 
     DisplayMetrics getScreenParams();
 
-    Navigator getNavigator();
-
     void showNoNetworkError(Runnable retryAction);
-
-    void trackScreen(String screenName);
-
-    void trackAction(String category, String action, String label, Integer value);
 }

@@ -1,8 +1,8 @@
 package com.fase.model.element;
 
 import com.fase.model.data.Place;
-import com.fase.model.enums.fase.PlacePickerType;
-import com.fase.model.enums.fase.Size;
+import com.fase.model.enums.PlacePickerType;
+import com.fase.model.enums.Size;
 
 public class PlacePicker extends VisualElement {
 

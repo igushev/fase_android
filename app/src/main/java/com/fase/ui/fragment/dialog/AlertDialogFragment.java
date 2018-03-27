@@ -13,9 +13,11 @@ import com.fase.base.BaseDialogFragment;
 public class AlertDialogFragment extends BaseDialogFragment {
 
     private String mMessage;
-    private String mButtonText;
     private String mTitle;
-    private DialogInterface.OnClickListener mOkListener;
+    private String mPositiveButtonText;
+    private String mNegativeButtonText;
+    private DialogInterface.OnClickListener mPositiveListener;
+    private DialogInterface.OnClickListener mNegativeListener;
 
     public static AlertDialogFragment newInstance(String message) {
         AlertDialogFragment fragment = new AlertDialogFragment();
@@ -26,15 +28,25 @@ public class AlertDialogFragment extends BaseDialogFragment {
     public static AlertDialogFragment newInstance(String message, DialogInterface.OnClickListener okListener) {
         AlertDialogFragment fragment = new AlertDialogFragment();
         fragment.mMessage = message;
-        fragment.mOkListener = okListener;
+        fragment.mPositiveListener = okListener;
         return fragment;
     }
 
-    public static AlertDialogFragment newInstance(String message, String buttonText, DialogInterface.OnClickListener okListener) {
+    public static AlertDialogFragment newInstance(String message, String positiveButtonText, DialogInterface.OnClickListener okListener) {
         AlertDialogFragment fragment = new AlertDialogFragment();
         fragment.mMessage = message;
-        fragment.mOkListener = okListener;
-        fragment.mButtonText = buttonText;
+        fragment.mPositiveListener = okListener;
+        fragment.mPositiveButtonText = positiveButtonText;
+        return fragment;
+    }
+
+    public static AlertDialogFragment newInstance(String message, String positiveButtonText, String negativeButtonText, DialogInterface.OnClickListener positiveListener, DialogInterface.OnClickListener negativeListener) {
+        AlertDialogFragment fragment = new AlertDialogFragment();
+        fragment.mMessage = message;
+        fragment.mPositiveButtonText = positiveButtonText;
+        fragment.mNegativeButtonText = negativeButtonText;
+        fragment.mPositiveListener = positiveListener;
+        fragment.mNegativeListener = negativeListener;
         return fragment;
     }
 
@@ -54,7 +66,10 @@ public class AlertDialogFragment extends BaseDialogFragment {
             alertDialogBuilder.setTitle(mTitle);
         }
         alertDialogBuilder.setMessage(mMessage);
-        alertDialogBuilder.setPositiveButton(TextUtils.isEmpty(mButtonText) ? getString(R.string.ok) : mButtonText, mOkListener);
+        alertDialogBuilder.setPositiveButton(TextUtils.isEmpty(mPositiveButtonText) ? getString(R.string.ok) : mPositiveButtonText, mPositiveListener);
+        if (mNegativeListener != null) {
+            alertDialogBuilder.setNegativeButton(TextUtils.isEmpty(mNegativeButtonText) ? getString(R.string.cancel) : mNegativeButtonText, mNegativeListener);
+        }
         return alertDialogBuilder.create();
     }
 

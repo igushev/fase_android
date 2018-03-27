@@ -120,7 +120,7 @@ public class RxUtil {
     }
 
     private static void disposeAndThrowNoNetwork(Disposable disposable) throws NoNetworkException {
-        if (!NetworkUtil.hasInternetConnectivity(FaseApp.getAppInstance())) {
+        if (!NetworkUtil.hasInternetConnectivity(FaseApp.getApplication())) {
             disposable.dispose();
             throw new NoNetworkException("No network connection");
         }

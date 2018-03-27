@@ -13,9 +13,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.arellomobile.mvp.presenter.InjectPresenter;
+import com.fase.FaseApp;
 import com.fase.R;
 import com.fase.model.element.Screen;
-import com.fase.model.enums.Screens;
 import com.fase.model.service.ElementsUpdate;
 import com.fase.mvp.presenter.MainActivityPresenter;
 import com.fase.mvp.view.MainActivityView;
@@ -62,16 +62,19 @@ public class MainActivity extends CommonActivity implements MainActivityView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // TODO: check play services
         initRenderer();
         clearViewState();
 
-        new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE).subscribe(granted -> {
-            if (!granted) {
-                showError("Access rights not granted");
-                return;
-            }
-            mPresenter.initScreen();
-        });
+        new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .doOnSubscribe(disposable -> mPresenter.getCompositeDisposable().add(disposable))
+                .subscribe(granted -> {
+                    if (!granted) {
+                        showError("Access rights not granted");
+                        return;
+                    }
+                    mPresenter.initScreen();
+                });
     }
 
     private void clearViewState() {
@@ -93,10 +96,16 @@ public class MainActivity extends CommonActivity implements MainActivityView {
 
         mRenderer = new ViewRenderer(this, getScreenParams(), viewHolder, new ViewRenderer.RendererCallback() {
             @Override
-            public void showAlert(String message, String buttonName, List<String> buttonIdList, String buttonMethod, Boolean requestLocale) {
-                if (!TextUtils.isEmpty(buttonName) && !TextUtils.isEmpty(buttonMethod)) {
-                    AlertDialogFragment.newInstance(message, buttonName, (dialogInterface, i) ->
-                            mPresenter.elementCallback(buttonIdList, buttonMethod, requestLocale)).show(getSupportFragmentManager());
+            public void showAlert(String message, String firstButtonName, List<String> firstButtonIdList, String firstButtonMethod, Boolean firstButtonRequestLocale,
+                                  String secondButtonName, List<String> secondButtonIdList, String secondButtonMethod, Boolean secondButtonRequestLocale) {
+                if (!TextUtils.isEmpty(firstButtonName) && !TextUtils.isEmpty(secondButtonName) && !TextUtils.isEmpty(firstButtonMethod) && !TextUtils.isEmpty(secondButtonMethod)) {
+                    AlertDialogFragment.newInstance(message, firstButtonName, secondButtonName,
+                            (dialogInterface, i) -> mPresenter.elementCallback(firstButtonIdList, firstButtonMethod, firstButtonRequestLocale),
+                            (dialogInterface, i) -> mPresenter.elementCallback(secondButtonIdList, secondButtonMethod, secondButtonRequestLocale))
+                            .show(getSupportFragmentManager());
+                } else if (!TextUtils.isEmpty(firstButtonName) && !TextUtils.isEmpty(firstButtonMethod)) {
+                    AlertDialogFragment.newInstance(message, firstButtonName, (dialogInterface, i) ->
+                            mPresenter.elementCallback(firstButtonIdList, firstButtonMethod, firstButtonRequestLocale)).show(getSupportFragmentManager());
                 } else {
                     AlertDialogFragment.newInstance(message).show(getSupportFragmentManager());
                 }
@@ -151,20 +160,6 @@ public class MainActivity extends CommonActivity implements MainActivityView {
     }
 
     @Override
-    protected void processScreen(Screens screen) {
-        switch (screen) {
-//            case MAIN:
-//                mNavigator.replaceFragment(MainFragment.newInstance());
-//                break;
-        }
-    }
-
-    @Override
-    protected Screens getMainScreen() {
-        return Screens.NONE; // TODO: change to main screen
-    }
-
-    @Override
     protected void holdDrawer(boolean hold) {
         if (vDrawerLayout != null) {
             vDrawerLayout.setDrawerLockMode(hold ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
@@ -193,16 +188,20 @@ public class MainActivity extends CommonActivity implements MainActivityView {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        FaseApp.getGoogleApiHelper().connect();
+    }
+
+    @Override
+    public void onStop() {
+        FaseApp.getGoogleApiHelper().disconnect();
+        super.onStop();
+    }
+
+    @Override
     public void render(Screen screen) {
         clearViewState();
-//        FrameLayout.LayoutPУ arams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        LinearLayout linearLayout = new LinearLayout(this);
-//        linearLayout.setLayoutParams(params);
-//        linearLayout.setOrientation(LinearLayout.VERTICAL);
-//        CustomDateTimePicker customDateTimePicker = new CustomDateTimePicker(this, new Date());
-//        linearLayout.addView(customDateTimePicker);
-//
-//        vContentContainer.addView(linearLayout);
         vContentContainer.addView(mRenderer.renderScreenView(screen));
     }
 

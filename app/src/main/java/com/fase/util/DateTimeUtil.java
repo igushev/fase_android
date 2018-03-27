@@ -18,7 +18,7 @@ import timber.log.Timber;
 
 public class DateTimeUtil {
 
-    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ssZ";
     public static final String APP_DATE_FORMAT = "yyyy-MM-dd";
     public static final String APP_TIME_FORMAT = "HH:mm";
     public static final String APP_12H_TIME_FORMAT = "hh:mm a";

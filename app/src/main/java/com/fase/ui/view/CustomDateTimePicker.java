@@ -153,4 +153,18 @@ public class CustomDateTimePicker extends FrameLayout {
     public Date getDateTime() {
         return mCurrentCalendar.getTime();
     }
+
+    public void setDateTime(Date dateTime) {
+        mCurrentCalendar.setTime(dateTime);
+        updateTextViews();
+
+        vDatePicker.updateDate(mCurrentCalendar.get(Calendar.YEAR), mCurrentCalendar.get(Calendar.MONTH), mCurrentCalendar.get(Calendar.DAY_OF_MONTH));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            vTimePicker.setHour(mCurrentCalendar.get(Calendar.HOUR_OF_DAY));
+            vTimePicker.setMinute(mCurrentCalendar.get(Calendar.MINUTE));
+        } else {
+            vTimePicker.setCurrentHour(mCurrentCalendar.get(Calendar.HOUR_OF_DAY));
+            vTimePicker.setCurrentMinute(mCurrentCalendar.get(Calendar.MINUTE));
+        }
+    }
 }

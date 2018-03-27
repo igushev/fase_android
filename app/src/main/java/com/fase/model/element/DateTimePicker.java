@@ -1,7 +1,7 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.fase.DateTimePickerType;
-import com.fase.model.enums.fase.Size;
+import com.fase.model.enums.DateTimePickerType;
+import com.fase.model.enums.Size;
 
 import java.util.Date;
 

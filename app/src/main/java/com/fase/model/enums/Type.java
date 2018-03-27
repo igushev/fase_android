@@ -1,4 +1,4 @@
-package com.fase.model.enums.fase;
+package com.fase.model.enums;
 
 import com.google.gson.annotations.SerializedName;
 

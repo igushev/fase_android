@@ -1,17 +1,19 @@
-package com.fase.model.enums.fase;
+package com.fase.model.enums;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum Size {
+public enum DateTimePickerType {
 
     @SerializedName("1")
-    MIN(1),
+    DATE(1),
     @SerializedName("2")
-    MAX(2);
+    TIME(2),
+    @SerializedName("3")
+    DATETIME(3);
 
     public final int value;
 
-    Size(int value) {
+    DateTimePickerType(int value) {
         this.value = value;
     }
 

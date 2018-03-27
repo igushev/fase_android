@@ -16,4 +16,5 @@
     <string name="no">No</string>
     <string name="choose_date_title">Choose date</string>
     <string name="choose_time_title">Choose time</string>
+    <string name="you_have_unread_messages">You have unread messages</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.fase.mvp.presenter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
@@ -32,29 +33,32 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import timber.log.Timber;
 
+@SuppressLint("CheckResult")
 @InjectViewState
 public class MainActivityPresenter extends BasePresenter<MainActivityView> {
 
     public void initScreen() {
-        Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ? mDataManager.getService() : mDataManager.getScreen();
+        Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ?
+                mDataManager.getService()
+                        .flatMap(response -> {
+                            if (response.getResources() != null && response.getResources().getResourceList() != null && !response.getResources().getResourceList().isEmpty()) {
+                                return Single.zip(Single.just(response), Observable.fromIterable(response.getResources().getResourceList())
+                                        .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
+                                                .flatMap(isExist -> {
+                                                    File cache = FileUtils.createDefaultCacheDir(FaseApp.getApplication().getApplicationContext(), "images");
+                                                    String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
+                                                    return isExist ? Single.just(new File(cache, filename))
+                                                            : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
+                                                })
+                                                .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
+                                                .toObservable())
+                                        .toList(), (resultResponse, isAddedList) -> resultResponse);
+                            } else {
+                                return Single.just(response);
+                            }
+                        })
+                : mDataManager.getScreen();
         screenRequest
-                .flatMap(response -> {
-                    if (response.getResources() != null && response.getResources().getResourceList() != null && !response.getResources().getResourceList().isEmpty()) {
-                        return Single.zip(Single.just(response), Observable.fromIterable(response.getResources().getResourceList())
-                                .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
-                                        .flatMap(isExist -> {
-                                            File cache = FileUtils.createDefaultCacheDir(FaseApp.getAppInstance().getApplicationContext(), "images");
-                                            String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
-                                            return isExist ? Single.just(new File(cache, filename))
-                                                    : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
-                                        })
-                                        .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
-                                        .toObservable())
-                                .toList(), (resultResponse, isAddedList) -> resultResponse);
-                    } else {
-                        return Single.just(response);
-                    }
-                })
                 .map(storeSessionAndScreenIds())
                 .compose(getBasicNetworkFlowSingleTransformer(true))
                 .subscribe(response -> {
@@ -177,14 +181,14 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
     }
 
     private Locale getLocale() {
-        TelephonyManager telephonyManager = (TelephonyManager) FaseApp.getAppInstance().getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager telephonyManager = (TelephonyManager) FaseApp.getApplication().getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         String iso = null;
         if (telephonyManager != null) {
             iso = telephonyManager.getNetworkCountryIso();
         }
 
         if (iso == null) {
-            iso = FaseApp.getAppInstance().getResources().getConfiguration().locale.getCountry();
+            iso = FaseApp.getApplication().getResources().getConfiguration().locale.getCountry();
         }
 
         //            ApiManager.callUrl("http://ip-api.com/json", new ApiCallback<String>() {

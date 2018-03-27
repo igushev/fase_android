@@ -1,19 +1,15 @@
-package com.fase.model.enums.fase;
+package com.fase.model.enums;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum Alight {
+public enum PlacePickerType {
 
     @SerializedName("1")
-    LEFT(1),
-    @SerializedName("2")
-    RIGHT(2),
-    @SerializedName("3")
-    CENTER(3);
+    CITY(1);
 
     public final int value;
 
-    Alight(int value) {
+    PlacePickerType(int value) {
         this.value = value;
     }
 

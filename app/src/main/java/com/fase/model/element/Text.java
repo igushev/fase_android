@@ -1,7 +1,7 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.fase.Size;
-import com.fase.model.enums.fase.Type;
+import com.fase.model.enums.Size;
+import com.fase.model.enums.Type;
 
 public class Text extends VisualElement {
 

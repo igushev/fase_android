@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "521239366913",
+    "firebase_url": "https://fase-2a025.firebaseio.com",
+    "project_id": "fase-2a025",
+    "storage_bucket": "fase-2a025.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521239366913:android:98e20891b787df36",
+        "android_client_info": {
+          "package_name": "com.fase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "521239366913-knumh8jnfbeg5iubvpacuhse9eq9kgc6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fase",
+            "certificate_hash": "4da2d5b3f33637683a899d90029ca10cb068b4f0"
+          }
+        },
+        {
+          "client_id": "521239366913-80hiathovjcpg94au6skum4mhu847flu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7AyZJ52G_twmYqfJcyxSzQEtSrhjvuOo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "521239366913-80hiathovjcpg94au6skum4mhu847flu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

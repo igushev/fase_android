@@ -1,6 +1,6 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.fase.Alight;
+import com.fase.model.enums.Alight;
 
 public class Switch extends VisualElement {
 

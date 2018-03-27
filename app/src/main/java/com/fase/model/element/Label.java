@@ -1,7 +1,7 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.fase.Alight;
-import com.fase.model.enums.fase.Size;
+import com.fase.model.enums.Alight;
+import com.fase.model.enums.Size;
 import com.google.gson.annotations.SerializedName;
 
 public class Label extends VisualElement {

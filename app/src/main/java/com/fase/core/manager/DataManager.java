@@ -45,7 +45,7 @@ public class DataManager {
 
     public Device getDevice() {
         Device device = new Device();
-        device.setDeviceToken("Mock"); // FIXME
+        device.setDeviceToken(getDeviceToken());
         device.setDeviceType(BuildConfig.DEVICE_TYPE);
         return device;
     }

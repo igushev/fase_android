@@ -3,10 +3,14 @@ package com.fase;
 import android.app.Application;
 import android.content.res.Resources;
 
+import com.akaita.java.rxjava2debug.RxJava2Debug;
+import com.crashlytics.android.Crashlytics;
 import com.fase.util.CrashReportingTree;
+import com.fase.util.GoogleApiHelper;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import io.fabric.sdk.android.Fabric;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.realm.Realm;
 import timber.log.Timber;
@@ -14,82 +18,41 @@ import timber.log.Timber;
 public class FaseApp extends Application {
 
     public static FaseApp sInstance;
-
-//    private Tracker mTracker;
+    private GoogleApiHelper mGoogleApiHelper;
 
     @Override
     public void onCreate() {
         super.onCreate();
         sInstance = this;
 
+        Fabric.with(this, new Crashlytics());
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
         } else {
             Timber.plant(new CrashReportingTree());
         }
 
-//        Fabric.with(this, new Crashlytics.Builder()
-//                .core(new CrashlyticsCore.Builder()
-//                        .disabled(BuildConfig.DEBUG)
-//                        .build())
-//                .build());
+        mGoogleApiHelper = new GoogleApiHelper(this);
 
         JodaTimeAndroid.init(this);
         Realm.init(this);
-        RxJavaPlugins.setErrorHandler(Timber::e);
-
+        RxJava2Debug.enableRxJava2AssemblyTracking();
+        RxJavaPlugins.setErrorHandler(throwable -> Timber.e(RxJava2Debug.getEnhancedStackTrace(throwable)));
     }
-
-//    public static void logUserInCrashlytics(String email, String fullName) {
-//        if (BuildConfig.DEBUG) {
-//            return;
-//        }
-//
-//        Crashlytics.setUserEmail(email);
-//        Crashlytics.setUserName(fullName);
-//    }
 
     public static Resources getRes() {
         return sInstance.getResources();
     }
 
-    public static FaseApp getAppInstance() {
+    public static synchronized FaseApp getApplication() {
         return sInstance;
     }
 
-//    private synchronized Tracker getDefaultTracker() {
-//        if (mTracker == null) {
-//            GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-//            mTracker = analytics.newTracker(BuildConfig.GOOGLE_ANALYTICS_TRACK_ID);
-//        }
-//        return mTracker;
-//    }
-
-    public void trackScreen(String screenName) {
-//        if (!TextUtils.isEmpty(screenName)) {
-//            Tracker tracker = getDefaultTracker();
-//            tracker.setScreenName(screenName);
-//            getDefaultTracker().send(new HitBuilders.ScreenViewBuilder().build());
-//        }
+    private GoogleApiHelper getGoogleApiHelperInstance() {
+        return this.mGoogleApiHelper;
     }
 
-    public void trackAction(String category, String action, String label, Integer value) {
-//        if (TextUtils.isEmpty(category) && TextUtils.isEmpty(action) && TextUtils.isEmpty(label) && value == null) {
-//            return;
-//        }
-//        HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder();
-//        if (!TextUtils.isEmpty(category)) {
-//            eventBuilder.setCategory(category);
-//        }
-//        if (!TextUtils.isEmpty(action)) {
-//            eventBuilder.setAction(action);
-//        }
-//        if (!TextUtils.isEmpty(label)) {
-//            eventBuilder.setLabel(label);
-//        }
-//        if (value != null) {
-//            eventBuilder.setValue(value.longValue());
-//        }
-//        getDefaultTracker().send(eventBuilder.build());
+    public static GoogleApiHelper getGoogleApiHelper() {
+        return getApplication().getGoogleApiHelperInstance();
     }
 }

@@ -1,15 +1,17 @@
-package com.fase.model.enums.fase;
+package com.fase.model.enums;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum PlacePickerType {
+public enum Orientation {
 
     @SerializedName("1")
-    CITY(1);
+    VERTICAL(1),
+    @SerializedName("2")
+    HORIZONTAL(2);
 
     public final int value;
 
-    PlacePickerType(int value) {
+    Orientation(int value) {
         this.value = value;
     }
 

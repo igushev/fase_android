@@ -13,11 +13,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import com.arellomobile.mvp.MvpAppCompatActivity;
-import com.fase.FaseApp;
 import com.fase.R;
-import com.fase.base.navigator.ActivityNavigator;
-import com.fase.base.navigator.Navigator;
-import com.fase.model.enums.ActivityTransition;
 import com.fase.ui.fragment.dialog.AlertDialogFragment;
 import com.fase.ui.fragment.dialog.ProgressDialogFragment;
 
@@ -38,68 +34,16 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
     protected Unbinder mUnBinder;
     protected boolean isBackAction = false;
 
-    protected ActivityNavigator mNavigator;
-    private ActivityTransition mTransitionEnter = ActivityTransition.FADE;
-    private ActivityTransition mTransitionExit = ActivityTransition.FADE;
     private ProgressDialogFragment mProgressDialog;
 
     protected abstract int getLayoutResourceId();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Bundle bundleExtra = getIntent().getBundleExtra(ActivityNavigator.EXTRA_ARG);
-        if (bundleExtra != null) {
-            ActivityTransition transitionEnter = (ActivityTransition) bundleExtra.getSerializable(ActivityNavigator.ACTIVITY_TRANSITION_ENTER);
-            if (transitionEnter != null) {
-                mTransitionEnter = transitionEnter;
-            }
-            ActivityTransition transitionExit = (ActivityTransition) bundleExtra.getSerializable(ActivityNavigator.ACTIVITY_TRANSITION_EXIT);
-            if (transitionExit != null) {
-                mTransitionExit = transitionExit;
-            }
-        }
-        overridePendingTransition(true);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         super.onCreate(savedInstanceState);
         setContentView(getLayoutResourceId());
         initToolbar();
-        mNavigator = new ActivityNavigator(this);
-    }
-
-    private void overridePendingTransition(boolean enter) {
-        if (enter) {
-            if (mTransitionEnter != null) {
-                switch (mTransitionEnter) {
-                    case FADE:
-                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                        break;
-                    case SLIDE_LEFT:
-                        overridePendingTransition(R.anim.enter_from_left, R.anim.exit_to_right);
-                        break;
-                    case SLIDE_RIGHT:
-                        overridePendingTransition(R.anim.enter_from_right, R.anim.exit_to_left);
-                        break;
-                }
-            }
-        } else {
-            if (mTransitionExit != null) {
-                switch (mTransitionExit) {
-                    case FADE:
-                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                        break;
-                    case SLIDE_LEFT:
-                        overridePendingTransition(R.anim.enter_from_left, R.anim.exit_to_right);
-                        break;
-                    case SLIDE_RIGHT:
-                        overridePendingTransition(R.anim.enter_from_right, R.anim.exit_to_left);
-                        break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public Navigator getNavigator() {
-        return mNavigator;
     }
 
     @Override
@@ -128,7 +72,7 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
     @Override
     public void finish() {
         super.finish();
-        overridePendingTransition(false);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
     @Override
@@ -303,15 +247,5 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
     public void showNoNetworkError(Runnable retryAction) {
         AlertDialogFragment.newInstance(getString(R.string.message_no_internet), getString(R.string.retry), (dialog, which) -> retryAction.run())
                 .show(getSupportFragmentManager());
-    }
-
-    @Override
-    public void trackScreen(String screenName) {
-        FaseApp.getAppInstance().trackScreen(screenName);
-    }
-
-    @Override
-    public void trackAction(String category, String action, String label, Integer value) {
-        FaseApp.getAppInstance().trackAction(category, action, label, value);
     }
 }
