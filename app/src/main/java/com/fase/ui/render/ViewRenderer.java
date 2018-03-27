@@ -10,7 +10,6 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -117,23 +116,18 @@ public class ViewRenderer {
     }
 
     private Context mContext;
-    private DisplayMetrics mDisplayMetrics;
     private RendererCallback mRendererCallback;
     private CompositeDisposable mCompositeDisposable;
     private DataManager mDataManager;
     private MainActivityVH mViewHolder;
-    private boolean hasPrevStepButton = false;
+    private boolean hasPrevStepMenu = false;
     private BottomSheetBehavior mSheetBehavior;
 
-    public ViewRenderer(Context context, DisplayMetrics displayMetrics, MainActivityVH viewHolder, RendererCallback callback) {
+    public ViewRenderer(Context context, MainActivityVH viewHolder, RendererCallback callback) {
         if (context == null) {
             throw new IllegalArgumentException("Context cant be null");
         }
         this.mContext = context;
-        if (displayMetrics == null) {
-            throw new IllegalArgumentException("DisplayMetrics cant be null");
-        }
-        this.mDisplayMetrics = displayMetrics;
         if (viewHolder == null) {
             throw new IllegalArgumentException("MainActivityVH must be specified");
         }
@@ -148,6 +142,7 @@ public class ViewRenderer {
     }
 
     public void clearViewState() {
+        hasPrevStepMenu = false;
         mViewHolder.vContentContainer.removeAllViews();
         mViewHolder.vNavigationMenuLayout.removeAllViews();
         mViewHolder.vFloatingActionButton.hide();
@@ -163,7 +158,6 @@ public class ViewRenderer {
     public void destroy() {
         clearViewState();
         mContext = null;
-        mDisplayMetrics = null;
         mRendererCallback = null;
         mDataManager = null;
         mCompositeDisposable = null;
@@ -484,11 +478,9 @@ public class ViewRenderer {
                     if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
                         if (buttonElement.getIdElementList().get(0).getElement() instanceof Menu) {
                             renderViewElement(null, buttonElement.getIdElementList().get(0), Orientation.VERTICAL, getIdListCopyForItem(tuple, idList));
+                            hasPrevStepMenu = true;
                         }
-                        hasPrevStepButton = true;
                         return null;
-                    } else {
-                        hasPrevStepButton = true;
                     }
 
                     android.widget.Button buttonView = new android.widget.Button(mContext);
@@ -519,7 +511,7 @@ public class ViewRenderer {
                     }
 
                     if (buttonElement.getOnClick() != null) {
-                        if (!tuple.getElementId().equals(PREV_STEP_BUTTON_ID)) {
+                        if (tuple.getElementId().equals(PREV_STEP_BUTTON_ID) || !hasPrevStepMenu) {
                             RxView.clicks(buttonView)
                                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                                     .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
@@ -887,12 +879,10 @@ public class ViewRenderer {
     }
 
     public View renderScreenView(Screen screen) {
-        hasPrevStepButton = false;
+        hasPrevStepMenu = false;
         if (screen.getOnRefresh() != null) {
             mViewHolder.vSwipeRefreshLayout.setEnabled(true);
-            mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> {
-                mRendererCallback.onFunctionCall(null, screen.getOnRefresh().getMethod(), screen.getRequestLocale());
-            });
+            mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> mRendererCallback.onFunctionCall(null, screen.getOnRefresh().getMethod(), screen.getRequestLocale()));
         } else {
             mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(null);
             mViewHolder.vSwipeRefreshLayout.setEnabled(false);
@@ -1042,8 +1032,8 @@ public class ViewRenderer {
         return null;
     }
 
-    public boolean hasPrevStepButton() {
-        return hasPrevStepButton;
+    public boolean hasPrevStepMenu() {
+        return hasPrevStepMenu;
     }
 
     public void onBackPressed() {

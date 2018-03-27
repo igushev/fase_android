@@ -94,7 +94,7 @@ public class MainActivity extends CommonActivity implements MainActivityView {
                 vToolbarShadow,
                 vBottomSheet);
 
-        mRenderer = new ViewRenderer(this, getScreenParams(), viewHolder, new ViewRenderer.RendererCallback() {
+        mRenderer = new ViewRenderer(this, viewHolder, new ViewRenderer.RendererCallback() {
             @Override
             public void showAlert(String message, String firstButtonName, List<String> firstButtonIdList, String firstButtonMethod, Boolean firstButtonRequestLocale,
                                   String secondButtonName, List<String> secondButtonIdList, String secondButtonMethod, Boolean secondButtonRequestLocale) {
@@ -218,7 +218,7 @@ public class MainActivity extends CommonActivity implements MainActivityView {
 
     @Override
     public void onBackPressed() {
-        if (mRenderer.hasPrevStepButton()) {
+        if (mRenderer.hasPrevStepMenu()) {
             mRenderer.onBackPressed();
         } else {
             super.onBackPressed();
