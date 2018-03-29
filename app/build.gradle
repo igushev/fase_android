@@ -11,7 +11,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 27
         versionCode 1
-        versionName "0.0.1"
+        versionName "0.0.3"
 
         android.applicationVariants.all { variant ->
             variant.outputs.all { output ->
@@ -112,7 +112,7 @@ ext {
     okhttpLibs = "3.9.1"
     glide = "4.6.1"
     rxJavaDebug = "1.2.2"
-    playServices = "12.0.0"
+    playServices = "12.0.1"
     crashlyticsVer = "2.9.1"
 }
 

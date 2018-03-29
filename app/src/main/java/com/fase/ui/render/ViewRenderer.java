@@ -37,6 +37,7 @@ import com.fase.FaseApp;
 import com.fase.R;
 import com.fase.core.manager.DataManager;
 import com.fase.model.Entry;
+import com.fase.model.PrevStepButtonDataHolder;
 import com.fase.model.element.Alert;
 import com.fase.model.element.Button;
 import com.fase.model.element.ContactPicker;
@@ -61,6 +62,7 @@ import com.fase.model.enums.DateTimePickerType;
 import com.fase.model.enums.Orientation;
 import com.fase.model.enums.Size;
 import com.fase.model.service.ElementsUpdate;
+import com.fase.model.service.Response;
 import com.fase.ui.adapter.CityAutocompleteAdapter;
 import com.fase.ui.adapter.SpinnerAdapter;
 import com.fase.ui.adapter.SpinnerAdapterWithoutEmptyItem;
@@ -100,7 +102,6 @@ public class ViewRenderer {
     private static final String CONTEXT_MENU = "context_menu";
 
     public interface RendererCallback {
-
         void showAlert(String message, String firstButtonName, List<String> firstButtonIdList, String firstButtonMethod, Boolean firstButtonRequestLocale,
                        String secondButtonName, List<String> secondButtonIdList, String secondButtonMethod, Boolean secondButtonRequestLocale);
 
@@ -111,8 +112,6 @@ public class ViewRenderer {
         void showError(String message);
 
         void setScreenTitle(String title);
-
-        void onBackPressed();
     }
 
     private Context mContext;
@@ -122,6 +121,8 @@ public class ViewRenderer {
     private MainActivityVH mViewHolder;
     private boolean hasPrevStepMenu = false;
     private BottomSheetBehavior mSheetBehavior;
+    private PrevStepButtonDataHolder mPrevStepButtonDataHolder;
+    private boolean elementsUpdating = false;
 
     public ViewRenderer(Context context, MainActivityVH viewHolder, RendererCallback callback) {
         if (context == null) {
@@ -142,7 +143,9 @@ public class ViewRenderer {
     }
 
     public void clearViewState() {
+        elementsUpdating = false;
         hasPrevStepMenu = false;
+        mPrevStepButtonDataHolder = null;
         mViewHolder.vContentContainer.removeAllViews();
         mViewHolder.vNavigationMenuLayout.removeAllViews();
         mViewHolder.vFloatingActionButton.hide();
@@ -150,6 +153,8 @@ public class ViewRenderer {
         mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_ID_TAG, null);
         mViewHolder.vBottomSheet.removeAllViews();
         mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(null);
+        mViewHolder.vSwipeRefreshLayout.setEnabled(false);
 
         initActionButton(0, null, null);
         RxUtil.safeUnSubscribe(mCompositeDisposable);
@@ -261,6 +266,7 @@ public class ViewRenderer {
             RxTextView.afterTextChangeEvents(textView)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                     .skip(1)
+                    .filter(textViewAfterTextChangeEvent -> !elementsUpdating) // filter elementUpdates
                     .flatMap(textViewAfterTextChangeEvent -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList),
                             textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "")
                             .toObservable())
@@ -297,6 +303,7 @@ public class ViewRenderer {
 
             RxCompoundButton.checkedChanges(switchView)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                    .filter(checkedChanges -> !elementsUpdating) // filter elementUpdates
                     .flatMap(checkChanges -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf(checkChanges))
                             .toObservable())
                     .compose(RxUtil.applyIoAndMainSchedulers())
@@ -340,6 +347,7 @@ public class ViewRenderer {
                 }
                 RxAdapterView.itemSelections(selectView)
                         .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                        .filter(itemSelections -> !elementsUpdating) // filter elementUpdates
                         .flatMap(value -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), entrySpinnerAdapter.getSelectedId())
                                 .toObservable())
                         .compose(RxUtil.applyIoAndMainSchedulers())
@@ -354,6 +362,7 @@ public class ViewRenderer {
 
                 RxAdapterView.itemSelections(selectView)
                         .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                        .filter(itemSelections -> !elementsUpdating) // filter elementUpdates
                         .flatMap(value -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), entrySpinnerAdapter.getSelectedId())
                                 .toObservable())
                         .compose(RxUtil.applyIoAndMainSchedulers())
@@ -382,6 +391,7 @@ public class ViewRenderer {
 
             RxSeekBar.changes(sliderView)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                    .filter(changes -> !elementsUpdating) // filter elementUpdates
                     .flatMap(progress -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf((progress - minValue) / 100f))
                             .toObservable())
                     .compose(RxUtil.applyIoAndMainSchedulers())
@@ -474,15 +484,18 @@ public class ViewRenderer {
                                 .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
                     }
                     return null;
-                default:
+                case PREV_STEP_BUTTON_ID:
                     if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
                         if (buttonElement.getIdElementList().get(0).getElement() instanceof Menu) {
                             renderViewElement(null, buttonElement.getIdElementList().get(0), Orientation.VERTICAL, getIdListCopyForItem(tuple, idList));
                             hasPrevStepMenu = true;
                         }
                         return null;
+                    } else {
+                        mPrevStepButtonDataHolder = new PrevStepButtonDataHolder(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
                     }
-
+                    break;
+                default:
                     android.widget.Button buttonView = new android.widget.Button(mContext);
                     buttonView.setTag(R.id.ELEMENT_TAG, element);
                     buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
@@ -511,15 +524,9 @@ public class ViewRenderer {
                     }
 
                     if (buttonElement.getOnClick() != null) {
-                        if (tuple.getElementId().equals(PREV_STEP_BUTTON_ID) || !hasPrevStepMenu) {
-                            RxView.clicks(buttonView)
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
-                        } else {
-                            RxView.clicks(buttonView)
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .subscribe(click -> mRendererCallback.onBackPressed());
-                        }
+                        RxView.clicks(buttonView)
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
                     }
                     return buttonView;
             }
@@ -541,12 +548,14 @@ public class ViewRenderer {
                             date.set(Calendar.MONTH, month);
                             date.set(Calendar.DAY_OF_MONTH, day);
 
-                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                    .toObservable()
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .compose(RxUtil.applyIoAndMainSchedulers())
-                                    .onErrorReturn(throwable -> false)
-                                    .subscribe();
+                            if (!elementsUpdating) {
+                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
+                                        .toObservable()
+                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                        .compose(RxUtil.applyIoAndMainSchedulers())
+                                        .onErrorReturn(throwable -> false)
+                                        .subscribe();
+                            }
                         });
                         return datePickerView;
                     case TIME:
@@ -567,12 +576,14 @@ public class ViewRenderer {
                             date.set(Calendar.HOUR_OF_DAY, hour);
                             date.set(Calendar.MINUTE, minute);
 
-                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                    .toObservable()
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .compose(RxUtil.applyIoAndMainSchedulers())
-                                    .onErrorReturn(throwable -> false)
-                                    .subscribe();
+                            if (!elementsUpdating) {
+                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
+                                        .toObservable()
+                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                        .compose(RxUtil.applyIoAndMainSchedulers())
+                                        .onErrorReturn(throwable -> false)
+                                        .subscribe();
+                            }
                         });
                         return timePickerView;
                 }
@@ -581,12 +592,14 @@ public class ViewRenderer {
                 CustomDateTimePicker customDateTimePickerView = new CustomDateTimePicker(mContext,
                         dateTimePickerElement.getDatetime() != null ? dateTimePickerElement.getDatetime() : new Date(),
                         date -> {
-                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                    .toObservable()
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .compose(RxUtil.applyIoAndMainSchedulers())
-                                    .onErrorReturn(throwable -> false)
-                                    .subscribe();
+                            if (!elementsUpdating) {
+                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT))
+                                        .toObservable()
+                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                        .compose(RxUtil.applyIoAndMainSchedulers())
+                                        .onErrorReturn(throwable -> false)
+                                        .subscribe();
+                            }
                         });
                 customDateTimePickerView.setTag(R.id.ELEMENT_TAG, element);
                 customDateTimePickerView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
@@ -634,6 +647,7 @@ public class ViewRenderer {
 //            RxTextView.afterTextChangeEvents(autoCompleteTextView)
 //                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
 //                    .skip(1)
+//                                .filter(textChangeEvents -> !elementsUpdating) // filter elementUpdates
 //                    .flatMap(textViewAfterTextChangeEvent -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList),
 //                            textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "")
 //                            .toObservable())
@@ -878,29 +892,31 @@ public class ViewRenderer {
         return linearLayout;
     }
 
-    public View renderScreenView(Screen screen) {
-        hasPrevStepMenu = false;
-        if (screen.getOnRefresh() != null) {
-            mViewHolder.vSwipeRefreshLayout.setEnabled(true);
-            mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> mRendererCallback.onFunctionCall(null, screen.getOnRefresh().getMethod(), screen.getRequestLocale()));
-        } else {
-            mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(null);
-            mViewHolder.vSwipeRefreshLayout.setEnabled(false);
+    public void renderScreenState(Response response) {
+        if (response.getElementsUpdate() != null) {
+            updateElement(response.getElementsUpdate());
         }
-        if (!TextUtils.isEmpty(screen.getTitle())) {
-            mRendererCallback.setScreenTitle(screen.getTitle());
-        }
+        if (response.getScreen() != null) {
+            Screen screen = response.getScreen();
+            if (screen.getOnRefresh() != null) {
+                mViewHolder.vSwipeRefreshLayout.setEnabled(true);
+                mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> mRendererCallback.onFunctionCall(null, screen.getOnRefresh().getMethod(), screen.getRequestLocale()));
+            }
+            if (!TextUtils.isEmpty(screen.getTitle())) {
+                mRendererCallback.setScreenTitle(screen.getTitle());
+            }
 
-        // TODO: load more
+            // TODO: load more
 
-        if (screen.getScrollable() != null && screen.getScrollable()) {
-            ScrollView scrollView = new ScrollView(mContext);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            scrollView.setLayoutParams(params);
-            scrollView.addView(getRenderedLayout(screen.getIdElementList(), true));
-            return scrollView;
-        } else {
-            return getRenderedLayout(screen.getIdElementList(), false);
+            if (screen.getScrollable() != null && screen.getScrollable()) {
+                ScrollView scrollView = new ScrollView(mContext);
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                scrollView.setLayoutParams(params);
+                scrollView.addView(getRenderedLayout(screen.getIdElementList(), true));
+                mViewHolder.vContentContainer.addView(scrollView);
+            } else {
+                mViewHolder.vContentContainer.addView(getRenderedLayout(screen.getIdElementList(), false));
+            }
         }
     }
 
@@ -935,7 +951,8 @@ public class ViewRenderer {
         mViewHolder.vToolbarShadow.setVisibility((buttonResId != 0 || !TextUtils.isEmpty(buttonText) || drawable != null) ? View.VISIBLE : View.GONE);
     }
 
-    public void updateElement(ElementsUpdate elementsUpdate) {
+    private void updateElement(ElementsUpdate elementsUpdate) {
+        elementsUpdating = true;
         if (elementsUpdate.getIdListList() != null && elementsUpdate.getValueList() != null) {
             List<List<String>> idListList = elementsUpdate.getIdListList();
             for (int i = 0; i < idListList.size(); i++) {
@@ -996,9 +1013,11 @@ public class ViewRenderer {
                     } else {
                         Timber.e(new Exception("Another instance type ::: " + resultView.getClass().getSimpleName() + " with value ::: " + value));
                     }
+                    // TODO: PlacesPicker
                 }
             }
         }
+        elementsUpdating = false;
     }
 
     private View getViewById(View v, String id) {
@@ -1036,11 +1055,19 @@ public class ViewRenderer {
         return hasPrevStepMenu;
     }
 
+    public boolean hasPrevButton() {
+        return mPrevStepButtonDataHolder != null;
+    }
+
     public void onBackPressed() {
-        if (mSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-            mSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        if (hasPrevStepMenu) {
+            if (mSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                mSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            } else {
+                mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            }
         } else {
-            mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            mRendererCallback.onFunctionCall(mPrevStepButtonDataHolder.getIdList(), mPrevStepButtonDataHolder.getMethod(), mPrevStepButtonDataHolder.getRequestLocale());
         }
     }
 }

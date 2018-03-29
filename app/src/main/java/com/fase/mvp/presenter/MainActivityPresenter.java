@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import timber.log.Timber;
@@ -38,53 +39,15 @@ import timber.log.Timber;
 public class MainActivityPresenter extends BasePresenter<MainActivityView> {
 
     public void initScreen() {
-        Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ?
-                mDataManager.getService()
-                        .flatMap(response -> {
-                            if (response.getResources() != null && response.getResources().getResourceList() != null && !response.getResources().getResourceList().isEmpty()) {
-                                return Single.zip(Single.just(response), Observable.fromIterable(response.getResources().getResourceList())
-                                        .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
-                                                .flatMap(isExist -> {
-                                                    File cache = FileUtils.createDefaultCacheDir(FaseApp.getApplication().getApplicationContext(), "images");
-                                                    String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
-                                                    return isExist ? Single.just(new File(cache, filename))
-                                                            : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
-                                                })
-                                                .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
-                                                .toObservable())
-                                        .toList(), (resultResponse, isAddedList) -> resultResponse);
-                            } else {
-                                return Single.just(response);
-                            }
-                        })
-                : mDataManager.getScreen();
+        Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ? mDataManager.getService() : mDataManager.getScreen();
         screenRequest
+                .flatMap(this::processResources)
                 .map(storeSessionAndScreenIds())
                 .compose(getBasicNetworkFlowSingleTransformer(true))
                 .subscribe(response -> {
                     getViewState().hideProgress();
-                    getViewState().render(response.getScreen());
+                    getViewState().render(response);
                 }, new GeneralErrorHandler(getViewState()));
-    }
-
-    @NonNull
-    private Function<Response, Response> storeSessionAndScreenIds() {
-        return response -> {
-            if (response.getScreenInfo() != null) {
-                mDataManager.setCurrentScreenId(response.getScreenInfo().getScreenId());
-            }
-            if (response.getSessionInfo() != null) {
-                mDataManager.setCurrentSessionId(response.getSessionInfo().getSessionId());
-            }
-            return response;
-        };
-    }
-
-    public void clearValueUpdates() {
-        mDataManager.clearValueUpdates()
-                .doOnSubscribe(disposable -> getCompositeDisposable().add(disposable))
-                .compose(RxUtil.applyCompletableIoAndMainSchedulers())
-                .subscribe(() -> Timber.i("UpdateValues cleared"), throwable -> Timber.e(throwable, "UpdateValues clearing error"));
     }
 
     public void elementCallback(List<String> idList, String method, Boolean requestLocale) {
@@ -115,6 +78,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                     }
 
                     return mDataManager.elementСallback(elementCallback)
+                            .flatMap(this::processResources)
                             .flatMap(response -> Single.zip(Observable.fromIterable(updateValues == null ? new ArrayList<>() : updateValues)
                                     .flatMap(updateValue -> mDataManager.deleteIfEquals(updateValue.getElementId(), updateValue.getValue())
                                             .toObservable())
@@ -125,9 +89,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                 .subscribe((response, throwable) -> {
                     getViewState().hideProgress();
                     if (throwable == null) {
-                        if (response.getScreen() != null) {
-                            getViewState().render(response.getScreen());
-                        }
+                        getViewState().render(response);
                     } else {
                         Timber.e(throwable, "Error getting data");
                         getViewState().showError("Error getting screen data");
@@ -162,6 +124,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                                     screenUpdate.setElementsUpdate(elementsUpdate);
                                 }
                                 return mDataManager.screenUpdate(screenUpdate)
+                                        .flatMap(this::processResources)
                                         .flatMap(response -> Single.zip(Observable.fromIterable(updateValues == null ? new ArrayList<>() : updateValues)
                                                 .flatMap(updateValue -> mDataManager.deleteIfEquals(updateValue.getElementId(), updateValue.getValue())
                                                         .toObservable())
@@ -169,15 +132,50 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                             }).toObservable();
                 }).doOnSubscribe(disposable -> getCompositeDisposable().add(disposable))
                 .compose(RxUtil.applyIoAndMainSchedulers())
-                .subscribe(response -> {
-                    if (response.getElementsUpdate() != null) {
-                        getViewState().updateElement(response.getElementsUpdate());
-                    }
-                }, throwable -> {
-                    Timber.e(throwable, "Error getting data");
-                    getViewState().showError("Error getting screen data");
-                });
+                .subscribe(response -> getViewState().render(response),
+                        throwable -> {
+                            Timber.e(throwable, "Error getting data");
+                            getViewState().showError("Error getting screen data");
+                        });
         return null;
+    }
+
+    @NonNull
+    private Function<Response, Response> storeSessionAndScreenIds() {
+        return response -> {
+            if (response.getScreenInfo() != null) {
+                mDataManager.setCurrentScreenId(response.getScreenInfo().getScreenId());
+            }
+            if (response.getSessionInfo() != null) {
+                mDataManager.setCurrentSessionId(response.getSessionInfo().getSessionId());
+            }
+            return response;
+        };
+    }
+
+    public void clearValueUpdates() {
+        mDataManager.clearValueUpdates()
+                .doOnSubscribe(disposable -> getCompositeDisposable().add(disposable))
+                .compose(RxUtil.applyCompletableIoAndMainSchedulers())
+                .subscribe(() -> Timber.i("UpdateValues cleared"), throwable -> Timber.e(throwable, "UpdateValues clearing error"));
+    }
+
+    private SingleSource<? extends Response> processResources(Response response) {
+        if (response.getResources() != null && response.getResources().getResourceList() != null && !response.getResources().getResourceList().isEmpty()) {
+            return Single.zip(Single.just(response), Observable.fromIterable(response.getResources().getResourceList())
+                    .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
+                            .flatMap(isExist -> {
+                                File cache = FileUtils.createDefaultCacheDir(FaseApp.getApplication().getApplicationContext(), "images");
+                                String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
+                                return isExist ? Single.just(new File(cache, filename))
+                                        : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
+                            })
+                            .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
+                            .toObservable())
+                    .toList(), (resultResponse, isAddedList) -> resultResponse);
+        } else {
+            return Single.just(response);
+        }
     }
 
     private Locale getLocale() {

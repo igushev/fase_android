@@ -15,8 +15,7 @@ import android.widget.TextView;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.fase.FaseApp;
 import com.fase.R;
-import com.fase.model.element.Screen;
-import com.fase.model.service.ElementsUpdate;
+import com.fase.model.service.Response;
 import com.fase.mvp.presenter.MainActivityPresenter;
 import com.fase.mvp.view.MainActivityView;
 import com.fase.ui.fragment.dialog.AlertDialogFragment;
@@ -131,11 +130,6 @@ public class MainActivity extends CommonActivity implements MainActivityView {
             public void setScreenTitle(String title) {
                 updateTitle(title);
             }
-
-            @Override
-            public void onBackPressed() {
-                MainActivity.super.onBackPressed();
-            }
         });
     }
 
@@ -200,14 +194,11 @@ public class MainActivity extends CommonActivity implements MainActivityView {
     }
 
     @Override
-    public void render(Screen screen) {
-        clearViewState();
-        vContentContainer.addView(mRenderer.renderScreenView(screen));
-    }
-
-    @Override
-    public void updateElement(ElementsUpdate elementsUpdate) {
-        mRenderer.updateElement(elementsUpdate);
+    public void render(Response response) {
+        if (response.getScreen() != null) {
+            clearViewState();
+        }
+        mRenderer.renderScreenState(response);
     }
 
     @Override
@@ -218,7 +209,7 @@ public class MainActivity extends CommonActivity implements MainActivityView {
 
     @Override
     public void onBackPressed() {
-        if (mRenderer.hasPrevStepMenu()) {
+        if (mRenderer.hasPrevStepMenu() || mRenderer.hasPrevButton()) {
             mRenderer.onBackPressed();
         } else {
             super.onBackPressed();
