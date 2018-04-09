@@ -43,7 +43,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
-import timber.log.Timber;
 
 public class MainActivity extends CommonActivity implements MainActivityView {
 
@@ -77,22 +76,22 @@ public class MainActivity extends CommonActivity implements MainActivityView {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Timber.e("onCreate %s", this.toString());
         super.onCreate(savedInstanceState);
 
-        // TODO: check play services
-        initRenderer();
-        clearViewState();
+        if (FaseApp.getGoogleApiHelper().checkPlayServices(this)) {
+            initRenderer();
+            clearViewState();
 
-        new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .doOnSubscribe(disposable -> mPresenter.getCompositeDisposable().add(disposable))
-                .subscribe(granted -> {
-                    if (!granted) {
-                        showError("Access rights not granted");
-                        return;
-                    }
-                    mPresenter.initScreen();
-                });
+            new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    .doOnSubscribe(disposable -> mPresenter.getCompositeDisposable().add(disposable))
+                    .subscribe(granted -> {
+                        if (!granted) {
+                            showError("Access rights not granted");
+                            return;
+                        }
+                        mPresenter.initScreen();
+                    });
+        }
     }
 
     private void clearViewState() {
@@ -252,14 +251,12 @@ public class MainActivity extends CommonActivity implements MainActivityView {
 
     @Override
     protected void onResume() {
-        Timber.e("onResume %s", this.toString());
         mElementUpdateDisposable = mPresenter.intiElementUpdates();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        Timber.e("onPause %s", this.toString());
         RxUtil.safeUnSubscribe(mElementUpdateDisposable);
         super.onPause();
     }

@@ -74,7 +74,6 @@ public class GoogleApiHelper implements GoogleApiClient.OnConnectionFailedListen
         Timber.d("onConnectionFailed: connectionResult = " + connectionResult.toString());
     }
 
-    // TODO: change MainActivity to abstract way
     public boolean checkPlayServices(MainActivity activity) {
         final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
