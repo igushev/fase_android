@@ -248,4 +248,11 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
         AlertDialogFragment.newInstance(getString(R.string.message_no_internet), getString(R.string.retry), (dialog, which) -> retryAction.run())
                 .show(getSupportFragmentManager());
     }
+
+    @Override
+    public void showErrorSkipRetryDialog(Runnable retryAction) {
+        AlertDialogFragment.newInstance(getString(R.string.error_occurred), getString(R.string.retry), getString(R.string.skip),
+                (dialog, which) -> retryAction.run(), (dialog, which) -> { /* skip */ })
+                .show(getSupportFragmentManager());
+    }
 }

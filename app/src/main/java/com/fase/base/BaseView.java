@@ -23,4 +23,7 @@ public interface BaseView extends MvpView {
 
     @StateStrategyType(OneExecutionStateStrategy.class)
     void showNoNetworkError(Runnable retryAction);
+
+    @StateStrategyType(OneExecutionStateStrategy.class)
+    void showErrorSkipRetryDialog(Runnable retryAction);
 }

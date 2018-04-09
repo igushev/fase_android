@@ -81,6 +81,16 @@ public class SpinnerAdapter<ID, VAL> {
         }
     }
 
+    public void selectValue(VAL val) {
+        for (Entry<ID, VAL> valEntry : mList) {
+            if (valEntry.name != null && val != null && val.equals(valEntry.name)) {
+                int spinnerPosition = mAdapter.getPosition(valEntry);
+                mSpinner.setSelection(spinnerPosition);
+                break;
+            }
+        }
+    }
+
     public void clearSelection() {
         mSpinner.setSelection(0);
     }

@@ -8,6 +8,8 @@ public class Device {
     private String deviceType;
     @SerializedName("device_token")
     private String deviceToken;
+    @SerializedName("pixel_density")
+    private Float pixelDensity;
 
     public Device() {
     }
@@ -26,5 +28,13 @@ public class Device {
 
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
+    }
+
+    public Float getPixelDensity() {
+        return pixelDensity;
+    }
+
+    public void setPixelDensity(Float pixelDensity) {
+        this.pixelDensity = pixelDensity;
     }
 }

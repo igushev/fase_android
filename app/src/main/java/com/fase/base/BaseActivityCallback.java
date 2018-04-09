@@ -40,4 +40,6 @@ public interface BaseActivityCallback {
     DisplayMetrics getScreenParams();
 
     void showNoNetworkError(Runnable retryAction);
+
+    void showErrorSkipRetryDialog(Runnable retryAction);
 }

@@ -1,6 +1,7 @@
 package com.fase.core.manager;
 
 import com.fase.BuildConfig;
+import com.fase.FaseApp;
 import com.fase.model.UpdateValue;
 import com.fase.model.service.Command;
 import com.fase.model.service.Device;
@@ -47,6 +48,7 @@ public class DataManager {
         Device device = new Device();
         device.setDeviceToken(getDeviceToken());
         device.setDeviceType(BuildConfig.DEVICE_TYPE);
+        device.setPixelDensity(FaseApp.getRes().getDisplayMetrics().density);
         return device;
     }
 

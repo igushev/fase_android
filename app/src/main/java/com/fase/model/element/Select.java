@@ -1,13 +1,13 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.Alight;
+import com.fase.model.enums.Align;
 
 import java.util.List;
 
 public class Select extends VisualElement {
 
     private List<String> items;
-    private Alight alight;
+    private Align align;
     private String value;
     private String hint;
 
@@ -22,12 +22,12 @@ public class Select extends VisualElement {
         this.items = items;
     }
 
-    public Alight getAlight() {
-        return alight;
+    public Align getAlign() {
+        return align;
     }
 
-    public void setAlight(Alight alight) {
-        this.alight = alight;
+    public void setAlign(Align align) {
+        this.align = align;
     }
 
     public String getValue() {

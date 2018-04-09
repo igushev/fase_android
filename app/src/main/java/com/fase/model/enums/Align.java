@@ -2,7 +2,7 @@ package com.fase.model.enums;
 
 import com.google.gson.annotations.SerializedName;
 
-public enum Alight {
+public enum Align {
 
     @SerializedName("1")
     LEFT(1),
@@ -13,7 +13,7 @@ public enum Alight {
 
     public final int value;
 
-    Alight(int value) {
+    Align(int value) {
         this.value = value;
     }
 

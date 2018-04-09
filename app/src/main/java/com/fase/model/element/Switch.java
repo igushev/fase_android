@@ -1,22 +1,22 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.Alight;
+import com.fase.model.enums.Align;
 
 public class Switch extends VisualElement {
 
-    private Alight alight;
+    private Align align;
     private String text;
     private Boolean value;
 
     public Switch() {
     }
 
-    public Alight getAlight() {
-        return alight;
+    public Align getAlign() {
+        return align;
     }
 
-    public void setAlight(Alight alight) {
-        this.alight = alight;
+    public void setAlign(Align align) {
+        this.align = align;
     }
 
     public String getText() {

@@ -1,6 +1,6 @@
 package com.fase.model.element;
 
-import com.fase.model.enums.Alight;
+import com.fase.model.enums.Align;
 import com.fase.model.enums.Size;
 import com.google.gson.annotations.SerializedName;
 
@@ -8,7 +8,7 @@ public class Label extends VisualElement {
 
     @SerializedName("on_click")
     private Function onClick;
-    private Alight alight;
+    private Align align;
     private Float font;
     private Size size;
     private String text;
@@ -24,12 +24,12 @@ public class Label extends VisualElement {
         this.onClick = onClick;
     }
 
-    public Alight getAlight() {
-        return alight;
+    public Align getAlign() {
+        return align;
     }
 
-    public void setAlight(Alight alight) {
-        this.alight = alight;
+    public void setAlign(Align align) {
+        this.align = align;
     }
 
     public Float getFont() {

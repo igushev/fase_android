@@ -71,6 +71,16 @@ public class SpinnerAdapterWithoutEmptyItem<ID, VAL> {
         }
     }
 
+    public void selectValue(VAL val) {
+        for (Entry<ID, VAL> valEntry : mList) {
+            if (valEntry.name != null && val != null && val.equals(valEntry.name)) {
+                int spinnerPosition = mAdapter.getPosition(valEntry);
+                mSpinner.setSelection(spinnerPosition);
+                break;
+            }
+        }
+    }
+
     private static class ListAdapter<ID, VAL> extends ArrayAdapter<Entry<ID, VAL>> {
 
         public ListAdapter(Context context, List<Entry<ID, VAL>> objects) {

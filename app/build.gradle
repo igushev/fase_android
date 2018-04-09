@@ -52,11 +52,14 @@ android {
             buildConfigField 'Integer', 'CONNECTION_TIMEOUT', '30'
             buildConfigField 'String', 'SHARED_PREFS_NAME', '"faseSharedPrefs"'
             buildConfigField 'String', 'SECURE_SHARED_PREFS_KEY', '"59f1060c-8fa1-4967-9566-98e713aaa429"'
-            buildConfigField 'String', 'API_HOST', '"http://notes-fase-env-test1.us-west-2.elasticbeanstalk.com"' // notes
+            //buildConfigField 'String', 'API_HOST', '"http://notes-fase-env-test1.us-west-2.elasticbeanstalk.com"' // notes
+            buildConfigField 'String', 'API_HOST', '"http://karmacounter-fase-env-test1.us-west-2.elasticbeanstalk.com"' // karma
 //            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com"' // hello world
 
             buildConfigField 'String', 'DEVICE_TYPE', '"Android"'
             buildConfigField 'Integer', 'ELEMENT_UPDATE_TIME', '2'
+
+            resValue 'string', 'google_maps_api_key', '"AIzaSyB7AyZJ52G_twmYqfJcyxSzQEtSrhjvuOo"'
         }
 
         debug {

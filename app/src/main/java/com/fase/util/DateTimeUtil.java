@@ -10,6 +10,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -18,10 +19,11 @@ import timber.log.Timber;
 
 public class DateTimeUtil {
 
-    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ssZ";
+    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String APP_DATE_FORMAT = "yyyy-MM-dd";
     public static final String APP_TIME_FORMAT = "HH:mm";
     public static final String APP_12H_TIME_FORMAT = "hh:mm a";
+    public static final String SERVER_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
 
     private static DateTimeFormatter mISOWithoutMillisOrOffsetWithTimezone = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
     private static DateTimeFormatter mISOWithoutMillisOrOffset = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -59,6 +61,17 @@ public class DateTimeUtil {
             Timber.e(e.getMessage());
         }
         return result;
+    }
+
+    public static Date toUtc(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return new Date(sdf.format(date));
+    }
+
+    public static Date utcToLocalDate(Date date) {
+        String timeZone = Calendar.getInstance().getTimeZone().getID();
+        return new Date(date.getTime() + TimeZone.getTimeZone(timeZone).getOffset(date.getTime()));
     }
 
     private static Date tryParseDate(String date) {

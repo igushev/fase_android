@@ -51,8 +51,7 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
             Timber.e(RxJava2Debug.getEnhancedStackTrace(throwable));
         } else if (throwable instanceof HttpException) {
             if (throwable.getMessage().contains("500")) {
-                showError(R.string.server_internal_error);
-                Timber.e(RxJava2Debug.getEnhancedStackTrace(throwable));
+                showErrorSkipRetry(mRetryAction);
             } else {
                 showError(throwable.getMessage());
                 Timber.e(RxJava2Debug.getEnhancedStackTrace(throwable));
@@ -101,6 +100,13 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
         BaseView view = mViewReference.get();
         if (view != null) {
             view.showNoNetworkError(retryAction);
+        }
+    }
+
+    private void showErrorSkipRetry(Runnable retryAction) {
+        BaseView view = mViewReference.get();
+        if (view != null) {
+            view.showErrorSkipRetryDialog(retryAction);
         }
     }
 }

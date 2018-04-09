@@ -4,12 +4,14 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,8 +23,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -30,7 +32,6 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import com.bumptech.glide.Glide;
 import com.fase.FaseApp;
@@ -38,6 +39,7 @@ import com.fase.R;
 import com.fase.core.manager.DataManager;
 import com.fase.model.Entry;
 import com.fase.model.PrevStepButtonDataHolder;
+import com.fase.model.RequestContactDataHolder;
 import com.fase.model.element.Alert;
 import com.fase.model.element.Button;
 import com.fase.model.element.ContactPicker;
@@ -66,11 +68,12 @@ import com.fase.model.service.Response;
 import com.fase.ui.adapter.CityAutocompleteAdapter;
 import com.fase.ui.adapter.SpinnerAdapter;
 import com.fase.ui.adapter.SpinnerAdapterWithoutEmptyItem;
+import com.fase.ui.fragment.dialog.DateTimePickerResult;
 import com.fase.ui.view.ClickableSpinner;
-import com.fase.ui.view.CustomDateTimePicker;
 import com.fase.ui.viewHolder.MainActivityVH;
 import com.fase.util.DateTimeUtil;
 import com.fase.util.NetworkUtil;
+import com.fase.util.PlaceUtils;
 import com.fase.util.RxUtil;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.location.places.AutocompleteFilter;
@@ -78,16 +81,12 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.gson.Gson;
 import com.jakewharton.rxbinding2.view.RxView;
-import com.jakewharton.rxbinding2.widget.RxAdapterView;
-import com.jakewharton.rxbinding2.widget.RxCompoundButton;
-import com.jakewharton.rxbinding2.widget.RxSeekBar;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import io.reactivex.disposables.CompositeDisposable;
@@ -112,6 +111,12 @@ public class ViewRenderer {
         void showError(String message);
 
         void setScreenTitle(String title);
+
+        void showDateTimePicker(DateTimePickerType type, Date date, DateTimePickerResult dateTimePickerResult);
+
+        void backPressed();
+
+        void requestContact(RequestContactDataHolder holder);
     }
 
     private Context mContext;
@@ -119,9 +124,9 @@ public class ViewRenderer {
     private CompositeDisposable mCompositeDisposable;
     private DataManager mDataManager;
     private MainActivityVH mViewHolder;
-    private boolean hasPrevStepMenu = false;
     private BottomSheetBehavior mSheetBehavior;
     private PrevStepButtonDataHolder mPrevStepButtonDataHolder;
+    private PrevStepButtonDataHolder mPrevStepButtonMenuHolder;
     private boolean elementsUpdating = false;
 
     public ViewRenderer(Context context, MainActivityVH viewHolder, RendererCallback callback) {
@@ -144,8 +149,8 @@ public class ViewRenderer {
 
     public void clearViewState() {
         elementsUpdating = false;
-        hasPrevStepMenu = false;
         mPrevStepButtonDataHolder = null;
+        mPrevStepButtonMenuHolder = null;
         mViewHolder.vContentContainer.removeAllViews();
         mViewHolder.vNavigationMenuLayout.removeAllViews();
         mViewHolder.vFloatingActionButton.hide();
@@ -209,8 +214,8 @@ public class ViewRenderer {
             labelView.setLayoutParams(getParams(labelElement.getSize(), isOrientationVertical));
             labelView.setTextSize(labelElement.getFont() == null ? 1 : labelElement.getFont() * 15); // 15 default size
 
-            if (labelElement.getAlight() != null) {
-                switch (labelElement.getAlight()) {
+            if (labelElement.getAlign() != null) {
+                switch (labelElement.getAlign()) {
                     case CENTER:
                         labelView.setGravity(Gravity.CENTER);
                         break;
@@ -237,6 +242,9 @@ public class ViewRenderer {
             textView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             textView.setHint(textElement.getHint());
             textView.setText(textElement.getText());
+            if (!TextUtils.isEmpty(textElement.getText())) {
+                textView.setSelection(textElement.getText().length());
+            }
             textView.setLayoutParams(getParams(textElement.getSize(), isOrientationVertical));
 
             if (textElement.getType() != null) {
@@ -273,7 +281,6 @@ public class ViewRenderer {
                     .compose(RxUtil.applyIoAndMainSchedulers())
                     .onErrorReturn(throwable -> false)
                     .subscribe();
-
             return textView;
         } else if (element instanceof Switch) {
             Switch switchElement = (Switch) element;
@@ -282,8 +289,8 @@ public class ViewRenderer {
             switchView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             switchView.setText(switchElement.getText());
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
-            if (switchElement.getAlight() != null) {
-                switch (switchElement.getAlight()) {
+            if (switchElement.getAlign() != null) {
+                switch (switchElement.getAlign()) {
                     case CENTER:
                         params.gravity = Gravity.CENTER;
                         break;
@@ -301,14 +308,14 @@ public class ViewRenderer {
                 switchView.setChecked(switchElement.getValue());
             }
 
-            RxCompoundButton.checkedChanges(switchView)
-                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                    .filter(checkedChanges -> !elementsUpdating) // filter elementUpdates
-                    .flatMap(checkChanges -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf(checkChanges))
-                            .toObservable())
-                    .compose(RxUtil.applyIoAndMainSchedulers())
-                    .onErrorReturn(throwable -> false)
-                    .subscribe();
+            switchView.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (!elementsUpdating) {
+                    mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf(isChecked))
+                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                            .compose(RxUtil.applySingleIoAndMainSchedulers())
+                            .subscribe();
+                }
+            });
 
             return switchView;
         } else if (element instanceof Select) {
@@ -317,8 +324,8 @@ public class ViewRenderer {
             selectView.setTag(R.id.ELEMENT_TAG, element);
             selectView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
-            if (selectElement.getAlight() != null) {
-                switch (selectElement.getAlight()) {
+            if (selectElement.getAlign() != null) {
+                switch (selectElement.getAlign()) {
                     case CENTER:
                         params.gravity = Gravity.CENTER;
                         break;
@@ -343,32 +350,31 @@ public class ViewRenderer {
                 SpinnerAdapter<String, String> entrySpinnerAdapter = new SpinnerAdapter<>(selectView, selectElement.getHint());
                 entrySpinnerAdapter.setList(itemsList);
                 if (!TextUtils.isEmpty(selectElement.getValue())) {
-                    entrySpinnerAdapter.setSelection(selectElement.getValue());
+                    entrySpinnerAdapter.selectValue(selectElement.getValue());
                 }
-                RxAdapterView.itemSelections(selectView)
-                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                        .filter(itemSelections -> !elementsUpdating) // filter elementUpdates
-                        .flatMap(value -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), entrySpinnerAdapter.getSelectedId())
-                                .toObservable())
-                        .compose(RxUtil.applyIoAndMainSchedulers())
-                        .onErrorReturn(throwable -> false)
-                        .subscribe();
             } else {
                 SpinnerAdapterWithoutEmptyItem<String, String> entrySpinnerAdapter = new SpinnerAdapterWithoutEmptyItem<>(selectView);
                 entrySpinnerAdapter.setList(itemsList);
                 if (!TextUtils.isEmpty(selectElement.getValue())) {
-                    entrySpinnerAdapter.setSelection(selectElement.getValue());
+                    entrySpinnerAdapter.selectValue(selectElement.getValue());
+                }
+            }
+
+            selectView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (!elementsUpdating && position != 0) {
+                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position - 1).name) // -1 because have empty element
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .compose(RxUtil.applySingleIoAndMainSchedulers())
+                                .subscribe();
+                    }
                 }
 
-                RxAdapterView.itemSelections(selectView)
-                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                        .filter(itemSelections -> !elementsUpdating) // filter elementUpdates
-                        .flatMap(value -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), entrySpinnerAdapter.getSelectedId())
-                                .toObservable())
-                        .compose(RxUtil.applyIoAndMainSchedulers())
-                        .onErrorReturn(throwable -> false)
-                        .subscribe();
-            }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
 
             return selectView;
         } else if (element instanceof Slider) {
@@ -389,14 +395,25 @@ public class ViewRenderer {
                 sliderView.setProgress((int) (sliderElement.getValue() * 100));
             }
 
-            RxSeekBar.changes(sliderView)
-                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                    .filter(changes -> !elementsUpdating) // filter elementUpdates
-                    .flatMap(progress -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf((progress - minValue) / 100f))
-                            .toObservable())
-                    .compose(RxUtil.applyIoAndMainSchedulers())
-                    .onErrorReturn(throwable -> false)
-                    .subscribe();
+            sliderView.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (!elementsUpdating) {
+                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), String.valueOf((progress - minValue) / 100f))
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .compose(RxUtil.applySingleIoAndMainSchedulers())
+                                .subscribe();
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
 
             return sliderView;
         } else if (element instanceof Image) {
@@ -425,54 +442,64 @@ public class ViewRenderer {
             return imageView;
         } else if (element instanceof Button) {
             Button buttonElement = (Button) element;
+
+            Tuple imageTuple = null;
+            Tuple menuTuple = null;
+            if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
+                for (Tuple tuple1 : buttonElement.getIdElementList()) {
+                    if (tuple1.getElement() instanceof Image) {
+                        imageTuple = tuple1;
+                    } else if (tuple1.getElement() instanceof Menu) {
+                        menuTuple = tuple1;
+                    } else {
+                        Timber.e("Not Image or Menu. Something else");
+                    }
+                }
+            }
+
             switch (tuple.getElementId()) {
                 case MAIN_BUTTON_ID: // configure FAB button
-                    if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
-                        Image image = (Image) buttonElement.getIdElementList().get(0).getElement();
+                    if (imageTuple != null) {
+                        Image image = (Image) imageTuple.getElement();
                         if (image != null) {
                             if (!TextUtils.isEmpty(image.getFilename())) {
                                 mDataManager.getResourcePath(image.getFilename())
                                         .doOnSubscribe(this::addDisposable)
                                         .subscribe(filePath -> {
-                                                    if (!TextUtils.isEmpty(filePath)) {
-                                                        mViewHolder.vFloatingActionButton.setImageDrawable(Drawable.createFromPath(filePath));
-                                                    }
-                                                },
-                                                throwable -> Timber.e(throwable, "Error getting image file path"));
-
-                                if (((Button) element).getOnClick() != null) {
-                                    RxView.clicks(mViewHolder.vFloatingActionButton)
-                                            .doOnSubscribe(this::addDisposable)
-                                            .subscribe(o -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
-                                }
-                                mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_TAG, element);
-                                mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                                mViewHolder.vFloatingActionButton.show();
+                                            if (!TextUtils.isEmpty(filePath)) {
+                                                mViewHolder.vFloatingActionButton.setImageDrawable(Drawable.createFromPath(filePath));
+                                            }
+                                        }, throwable -> Timber.e(throwable, "Error getting image file path"));
                             } else {
                                 throw new IllegalArgumentException("Image filename empty");
                             }
                         }
                     }
+
+                    Tuple finalMenuTuple = menuTuple;
+                    RxView.clicks(mViewHolder.vFloatingActionButton)
+                            .doOnSubscribe(this::addDisposable)
+                            .subscribe(o -> {
+                                if (finalMenuTuple != null) {
+                                    renderBottomSheetMenu(finalMenuTuple, getIdListCopyForItem(tuple, idList));
+                                } else if (((Button) element).getOnClick() != null) {
+                                    mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
+                                }
+                            });
+                    mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_TAG, element);
+                    mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+                    mViewHolder.vFloatingActionButton.show();
                     return null;
                 case NEXT_STEP_BUTTON_ID: // configure button in toolbar
-                    if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
-                        for (Tuple itemTuple : buttonElement.getIdElementList()) {
-                            if (itemTuple.getElement() instanceof Image) {
-                                Image imageElement = (Image) tuple.getElement();
-                                if (imageElement != null) {
-                                    mDataManager.getResourcePath(imageElement.getFilename())
-                                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                            .subscribe(filePath -> initActionButton(0, Drawable.createFromPath(filePath), buttonElement.getText()),
-                                                    throwable -> Timber.e(throwable, "Error getting image file path"));
-                                } else {
-                                    throw new IllegalArgumentException("Image filename empty");
-                                }
-                                if (buttonElement.getOnClick() != null) {
-                                    RxView.clicks(mViewHolder.vButtonFirst)
-                                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                            .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
-                                }
-                            }
+                    if (imageTuple != null) {
+                        Image imageElement = (Image) imageTuple.getElement();
+                        if (imageElement != null) {
+                            mDataManager.getResourcePath(imageElement.getFilename())
+                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                    .subscribe(filePath -> initActionButton(0, Drawable.createFromPath(filePath), buttonElement.getText()),
+                                            throwable -> Timber.e(throwable, "Error getting image file path"));
+                        } else {
+                            throw new IllegalArgumentException("Image filename empty");
                         }
                     } else {
                         initActionButton(0, null, buttonElement.getText());
@@ -485,16 +512,12 @@ public class ViewRenderer {
                     }
                     return null;
                 case PREV_STEP_BUTTON_ID:
-                    if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
-                        if (buttonElement.getIdElementList().get(0).getElement() instanceof Menu) {
-                            renderViewElement(null, buttonElement.getIdElementList().get(0), Orientation.VERTICAL, getIdListCopyForItem(tuple, idList));
-                            hasPrevStepMenu = true;
-                        }
-                        return null;
+                    if (menuTuple != null) {
+                        mPrevStepButtonMenuHolder = new PrevStepButtonDataHolder(menuTuple, getIdListCopyForItem(tuple, idList), buttonElement.getOnClick() != null ? buttonElement.getOnClick().getMethod() : null, buttonElement.getRequestLocale());
                     } else {
                         mPrevStepButtonDataHolder = new PrevStepButtonDataHolder(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
                     }
-                    break;
+                    return null;
                 default:
                     android.widget.Button buttonView = new android.widget.Button(mContext);
                     buttonView.setTag(R.id.ELEMENT_TAG, element);
@@ -502,111 +525,106 @@ public class ViewRenderer {
                     buttonView.setLayoutParams(getParams(null, isOrientationVertical));
                     buttonView.setText(buttonElement.getText());
 
-                    if (buttonElement.getIdElementList() != null && !buttonElement.getIdElementList().isEmpty()) {
-                        for (Tuple itemTuple : buttonElement.getIdElementList()) {
-                            if (itemTuple.getElement() instanceof Image) {
-                                Image imageElement = (Image) tuple.getElement();
-                                if (imageElement != null) {
-                                    mDataManager.getResourcePath(imageElement.getFilename())
-                                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                            .subscribe(filePath -> {
-                                                        buttonView.setCompoundDrawablePadding(16);
-                                                        buttonView.setCompoundDrawablesWithIntrinsicBounds(null, Drawable.createFromPath(filePath), null, null);
-                                                    },
-                                                    throwable -> Timber.e(throwable, "Error getting image file path"));
-                                } else {
-                                    throw new IllegalArgumentException("Image filename empty");
-                                }
-                            } else if (itemTuple.getElement() instanceof Menu) {
-                                renderViewElement(null, itemTuple, Orientation.VERTICAL, getIdListCopyForItem(tuple, idList));
-                            }
+                    if (imageTuple != null) {
+                        Image imageElement = (Image) imageTuple.getElement();
+                        if (imageElement != null) {
+                            mDataManager.getResourcePath(imageElement.getFilename())
+                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                    .subscribe(filePath -> {
+                                                buttonView.setCompoundDrawablePadding(16);
+                                                buttonView.setCompoundDrawablesWithIntrinsicBounds(null, Drawable.createFromPath(filePath), null, null);
+                                            },
+                                            throwable -> Timber.e(throwable, "Error getting image file path"));
+                        } else {
+                            throw new IllegalArgumentException("Image filename empty");
                         }
                     }
 
-                    if (buttonElement.getOnClick() != null) {
-                        RxView.clicks(buttonView)
-                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale()));
-                    }
+
+                    Tuple finalMenuTuple1 = menuTuple;
+                    RxView.clicks(buttonView)
+                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                            .subscribe(click -> {
+                                if (finalMenuTuple1 != null) {
+                                    renderBottomSheetMenu(finalMenuTuple1, getIdListCopyForItem(tuple, idList));
+                                } else if (buttonElement.getOnClick() != null) {
+                                    mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
+                                }
+                            });
+
                     return buttonView;
             }
         } else if (element instanceof DateTimePicker) {
             DateTimePicker dateTimePickerElement = (DateTimePicker) element;
-            if (dateTimePickerElement.getType() != null && dateTimePickerElement.getType() != DateTimePickerType.DATETIME) {
-                Calendar calendar = GregorianCalendar.getInstance();
-                calendar.setTime(dateTimePickerElement.getDatetime() != null ? dateTimePickerElement.getDatetime() : new Date());
-                switch (dateTimePickerElement.getType()) {
-                    case DATE:
-                        ContextThemeWrapper wrappedContext = new ContextThemeWrapper(mContext, R.style.DatePicker);
-                        DatePicker datePickerView = new DatePicker(wrappedContext);
-                        datePickerView.setTag(R.id.ELEMENT_TAG, element);
-                        datePickerView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                        datePickerView.setLayoutParams(getParams(dateTimePickerElement.getSize(), isOrientationVertical));
-                        datePickerView.init(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), (datePicker, year, month, day) -> {
-                            Calendar date = GregorianCalendar.getInstance();
-                            date.set(Calendar.YEAR, year);
-                            date.set(Calendar.MONTH, month);
-                            date.set(Calendar.DAY_OF_MONTH, day);
+            EditText editText = new EditText(mContext);
+            editText.setTag(R.id.ELEMENT_TAG, element);
+            editText.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            editText.setHint(dateTimePickerElement.getHint());
+            editText.setLayoutParams(getParams(dateTimePickerElement.getSize(), isOrientationVertical));
+            editText.setFocusable(false);
+            editText.setFocusableInTouchMode(false);
 
-                            if (!elementsUpdating) {
-                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                        .toObservable()
-                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                        .compose(RxUtil.applyIoAndMainSchedulers())
-                                        .onErrorReturn(throwable -> false)
-                                        .subscribe();
-                            }
-                        });
-                        return datePickerView;
-                    case TIME:
-                        TimePicker timePickerView = new TimePicker(mContext);
-                        timePickerView.setTag(R.id.ELEMENT_TAG, element);
-                        timePickerView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                        timePickerView.setLayoutParams(getParams(dateTimePickerElement.getSize(), isOrientationVertical));
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            timePickerView.setHour(calendar.get(Calendar.HOUR_OF_DAY));
-                            timePickerView.setMinute(calendar.get(Calendar.MINUTE));
-                        } else {
-                            timePickerView.setCurrentHour(calendar.get(Calendar.HOUR_OF_DAY));
-                            timePickerView.setCurrentMinute(calendar.get(Calendar.MINUTE));
-                        }
-                        timePickerView.setOnTimeChangedListener((timePicker, hour, minute) -> {
-                            Calendar date = GregorianCalendar.getInstance();
-                            date.set(Calendar.HOUR_OF_DAY, hour);
-                            date.set(Calendar.MINUTE, minute);
-
-                            if (!elementsUpdating) {
-                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date.getTime(), DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                        .toObservable()
-                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                        .compose(RxUtil.applyIoAndMainSchedulers())
-                                        .onErrorReturn(throwable -> false)
-                                        .subscribe();
-                            }
-                        });
-                        return timePickerView;
-                }
-            } else {
-                // DATETIME type by default
-                CustomDateTimePicker customDateTimePickerView = new CustomDateTimePicker(mContext,
-                        dateTimePickerElement.getDatetime() != null ? dateTimePickerElement.getDatetime() : new Date(),
-                        date -> {
-                            if (!elementsUpdating) {
-                                mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT))
-                                        .toObservable()
-                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                        .compose(RxUtil.applyIoAndMainSchedulers())
-                                        .onErrorReturn(throwable -> false)
-                                        .subscribe();
-                            }
-                        });
-                customDateTimePickerView.setTag(R.id.ELEMENT_TAG, element);
-                customDateTimePickerView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                customDateTimePickerView.setLayoutParams(getParams(dateTimePickerElement.getSize(), isOrientationVertical));
-                return customDateTimePickerView;
+            switch (dateTimePickerElement.getType()) {
+                case DATE:
+                    editText.setText(DateTimeUtil.formatDate(dateTimePickerElement.getDatetime(), DateTimeUtil.APP_DATE_FORMAT));
+                    break;
+                case TIME:
+                    editText.setText(DateTimeUtil.formatDate(dateTimePickerElement.getDatetime(), DateTimeUtil.APP_TIME_FORMAT));
+                    break;
+                case DATETIME:
+                    editText.setText(DateTimeUtil.formatDate(dateTimePickerElement.getDatetime(), DateTimeUtil.APP_DATE_TIME_FORMAT));
+                    break;
             }
-            return null;
+
+            if (!elementsUpdating) {
+                RxTextView.afterTextChangeEvents(editText)
+                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                        .skip(1)
+                        .filter(textViewAfterTextChangeEvent -> !elementsUpdating) // filter elementUpdates
+                        .map(textViewAfterTextChangeEvent -> {
+                            String dateText = textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "";
+                            if (!TextUtils.isEmpty(dateText)) {
+                                Date date = null;
+                                switch (dateTimePickerElement.getType()) {
+                                    case DATE:
+                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_FORMAT));
+                                        break;
+                                    case TIME:
+                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_TIME_FORMAT));
+                                        break;
+                                    case DATETIME:
+                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT));
+                                        break;
+                                }
+                                if (date != null) {
+                                    return DateTimeUtil.formatDate(date, DateTimeUtil.SERVER_DATE_TIME);
+                                }
+                            }
+                            return "";
+                        })
+                        .flatMap(result -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), result)
+                                .toObservable())
+                        .compose(RxUtil.applyIoAndMainSchedulers())
+                        .onErrorReturn(throwable -> false)
+                        .subscribe();
+            }
+
+            RxView.clicks(editText)
+                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                    .subscribe(click -> mRendererCallback.showDateTimePicker(dateTimePickerElement.getType(), dateTimePickerElement.getDatetime(), date -> {
+                        switch (dateTimePickerElement.getType()) {
+                            case DATE:
+                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_FORMAT));
+                                break;
+                            case TIME:
+                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_TIME_FORMAT));
+                                break;
+                            case DATETIME:
+                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT));
+                                break;
+                        }
+                    }));
+            return editText;
         } else if (element instanceof PlacePicker) {
             PlacePicker placesPickerElement = (PlacePicker) element;
             AutoCompleteTextView autoCompleteTextView = new AutoCompleteTextView(mContext);
@@ -631,9 +649,16 @@ public class ViewRenderer {
                             return;
                         }
 
-                        // TODO: use values
                         Place place = places.get(0);
-                        String placeText = autoCompleteTextView.getText().toString();
+                        com.fase.model.data.Place placeModel = PlaceUtils.getPlace(FaseApp.getApplication().getApplicationContext(), place);
+                        if (!elementsUpdating) {
+                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), new Gson().toJson(placeModel))
+                                    .toObservable()
+                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                    .compose(RxUtil.applyIoAndMainSchedulers())
+                                    .onErrorReturn(throwable -> false)
+                                    .subscribe();
+                        }
                     });
                 }
             });
@@ -641,19 +666,10 @@ public class ViewRenderer {
             if (placesPickerElement.getPlace() != null) {
                 com.fase.model.data.Place place = placesPickerElement.getPlace();
                 autoCompleteTextView.setText(place.getCity());
+                if (!TextUtils.isEmpty(place.getCity())) {
+                    autoCompleteTextView.setSelection(place.getCity().length());
+                }
             }
-
-            // TODO: change logic
-//            RxTextView.afterTextChangeEvents(autoCompleteTextView)
-//                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-//                    .skip(1)
-//                                .filter(textChangeEvents -> !elementsUpdating) // filter elementUpdates
-//                    .flatMap(textViewAfterTextChangeEvent -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList),
-//                            textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "")
-//                            .toObservable())
-//                    .compose(RxUtil.applyIoAndMainSchedulers())
-//                    .onErrorReturn(throwable -> false)
-//                    .subscribe();
 
             return autoCompleteTextView;
         } else if (element instanceof Web) {
@@ -731,14 +747,29 @@ public class ViewRenderer {
             mRendererCallback.enableNavigationMenu();
             return null;
         } else if (element instanceof ContactPicker) {
-            // TODO: open contacts
-            /*
-                private Contact contact;
-                private Function onPick;
-                private Size size;
-                private String hint;
-             */
-            return null;
+            ContactPicker contactPicker = (ContactPicker) element;
+
+            EditText editText = new EditText(mContext);
+            editText.setTag(R.id.ELEMENT_TAG, element);
+            editText.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            editText.setHint(contactPicker.getHint());
+            editText.setLayoutParams(getParams(contactPicker.getSize(), isOrientationVertical));
+            editText.setFocusable(false);
+            editText.setFocusableInTouchMode(false);
+
+            if (contactPicker.getContact() != null) {
+                if (!TextUtils.isEmpty(contactPicker.getContact().getDisplayName())) {
+                    editText.setText(contactPicker.getContact().getDisplayName());
+                }
+            }
+
+            if (contactPicker.getOnPick() != null) {
+                RxView.clicks(editText)
+                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                        .subscribe(click -> mRendererCallback.requestContact(new RequestContactDataHolder(editText, tuple.getElementId(),
+                                getIdListCopyForItem(tuple, idList), contactPicker.getOnPick().getMethod(), contactPicker.getRequestLocale())));
+            }
+            return editText;
         } else if (element instanceof Menu) {
             Menu menuElement = (Menu) element;
             if (tuple.getElementId().equals(CONTEXT_MENU)) {
@@ -873,6 +904,7 @@ public class ViewRenderer {
         if (tuple != null && tuple.getElement() != null) {
             View view = renderView(tuple, orientation, idList);
             if (view != null && viewGroup != null) {
+                view.setId((int) SystemClock.currentThreadTimeMillis());
                 viewGroup.addView(view);
             }
             return view;
@@ -912,6 +944,9 @@ public class ViewRenderer {
                 ScrollView scrollView = new ScrollView(mContext);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 scrollView.setLayoutParams(params);
+                int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, FaseApp.getRes().getDisplayMetrics());
+                scrollView.setPadding(0, 0, 0, padding);
+                scrollView.setClipToPadding(false);
                 scrollView.addView(getRenderedLayout(screen.getIdElementList(), true));
                 mViewHolder.vContentContainer.addView(scrollView);
             } else {
@@ -964,8 +999,15 @@ public class ViewRenderer {
                     resultView = getViewById(resultView, string);
                 }
                 if (resultView != null && resultView != mViewHolder.vContentContainer) {
-                    if (resultView instanceof EditText) {
-                        ((EditText) resultView).setText(value);
+                    if (resultView instanceof AutoCompleteTextView) {
+                        AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) resultView;
+                        autoCompleteTextView.setText(value);
+                    } else if (resultView instanceof EditText) {
+                        EditText editText = (EditText) resultView;
+                        editText.setText(value);
+                        if (!TextUtils.isEmpty(value)) {
+                            editText.setSelection(value.length());
+                        }
                     } else if (resultView instanceof android.widget.Switch) {
                         Boolean boolValue = Boolean.parseBoolean(value);
                         ((android.widget.Switch) resultView).setChecked(boolValue);
@@ -977,43 +1019,21 @@ public class ViewRenderer {
                         ClickableSpinner spinner = (ClickableSpinner) resultView;
                         if (spinner.getAdapter() instanceof SpinnerAdapterWithoutEmptyItem) {
                             SpinnerAdapterWithoutEmptyItem<String, String> adapter = (SpinnerAdapterWithoutEmptyItem<String, String>) spinner.getAdapter();
-                            adapter.setSelection(value);
+                            adapter.selectValue(value);
                         } else {
                             SpinnerAdapter<String, String> adapter = (SpinnerAdapter) spinner.getAdapter();
-                            adapter.setSelection(value);
+                            adapter.selectValue(value);
                         }
                     } else if (resultView instanceof SeekBar) {
                         try {
                             ((SeekBar) resultView).setProgress((Integer.parseInt(value) * 100));
                         } catch (Exception ignored) {
                         }
-                    } else if (resultView instanceof DatePicker) {
-                        Calendar calendar = GregorianCalendar.getInstance();
-                        Date date = DateTimeUtil.formatDate(value, DateTimeUtil.APP_DATE_TIME_FORMAT);
-                        calendar.setTime(date);
-                        ((DatePicker) resultView).updateDate(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-                    } else if (resultView instanceof TimePicker) {
-                        TimePicker timePicker = (TimePicker) resultView;
-                        Calendar calendar = GregorianCalendar.getInstance();
-                        Date date = DateTimeUtil.formatDate(value, DateTimeUtil.APP_DATE_TIME_FORMAT);
-                        calendar.setTime(date);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            timePicker.setHour(calendar.get(Calendar.HOUR_OF_DAY));
-                            timePicker.setMinute(calendar.get(Calendar.MINUTE));
-                        } else {
-                            timePicker.setCurrentHour(calendar.get(Calendar.HOUR_OF_DAY));
-                            timePicker.setCurrentMinute(calendar.get(Calendar.MINUTE));
-                        }
-                    } else if (resultView instanceof CustomDateTimePicker) {
-                        Date date = DateTimeUtil.formatDate(value, DateTimeUtil.APP_DATE_TIME_FORMAT);
-                        ((CustomDateTimePicker) resultView).setDateTime(date);
                     } else if (resultView instanceof WebView) {
                         ((WebView) resultView).loadUrl(value);
                     } else {
                         Timber.e(new Exception("Another instance type ::: " + resultView.getClass().getSimpleName() + " with value ::: " + value));
                     }
-                    // TODO: PlacesPicker
                 }
             }
         }
@@ -1051,23 +1071,29 @@ public class ViewRenderer {
         return null;
     }
 
-    public boolean hasPrevStepMenu() {
-        return hasPrevStepMenu;
-    }
-
-    public boolean hasPrevButton() {
-        return mPrevStepButtonDataHolder != null;
-    }
-
     public void onBackPressed() {
-        if (hasPrevStepMenu) {
-            if (mSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                mSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        if (mPrevStepButtonMenuHolder != null || mPrevStepButtonDataHolder != null) {
+            if (mPrevStepButtonMenuHolder != null) {
+                if (mSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                    renderBottomSheetMenu(mPrevStepButtonMenuHolder.getTuple(), mPrevStepButtonMenuHolder.getIdList());
+                } else {
+                    mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
             } else {
-                mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                mRendererCallback.onFunctionCall(mPrevStepButtonDataHolder.getIdList(), mPrevStepButtonDataHolder.getMethod(), mPrevStepButtonDataHolder.getRequestLocale());
             }
         } else {
-            mRendererCallback.onFunctionCall(mPrevStepButtonDataHolder.getIdList(), mPrevStepButtonDataHolder.getMethod(), mPrevStepButtonDataHolder.getRequestLocale());
+            if (mSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                mSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            } else {
+                mRendererCallback.backPressed();
+            }
         }
+    }
+
+    private void renderBottomSheetMenu(Tuple tuple, ArrayList<String> idList) {
+        mViewHolder.vBottomSheet.removeAllViews();
+        renderViewElement(null, tuple, Orientation.VERTICAL, idList);
+        mSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
     }
 }

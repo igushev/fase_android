@@ -1,20 +1,30 @@
 package com.fase.model;
 
-import java.util.List;
+import com.fase.model.element.Tuple;
+
+import java.util.ArrayList;
 
 public class PrevStepButtonDataHolder {
 
-    private List<String> idList;
+    private Tuple tuple;
+    private ArrayList<String> idList;
     private String method;
     private Boolean requestLocale;
 
-    public PrevStepButtonDataHolder(List<String> idList, String method, Boolean requestLocale) {
+    public PrevStepButtonDataHolder(ArrayList<String> idList, String method, Boolean requestLocale) {
         this.idList = idList;
         this.method = method;
         this.requestLocale = requestLocale;
     }
 
-    public List<String> getIdList() {
+    public PrevStepButtonDataHolder(Tuple tuple, ArrayList<String> idList, String method, Boolean requestLocale) {
+        this.tuple = tuple;
+        this.idList = idList;
+        this.method = method;
+        this.requestLocale = requestLocale;
+    }
+
+    public ArrayList<String> getIdList() {
         return idList;
     }
 
@@ -24,5 +34,9 @@ public class PrevStepButtonDataHolder {
 
     public Boolean getRequestLocale() {
         return requestLocale;
+    }
+
+    public Tuple getTuple() {
+        return tuple;
     }
 }

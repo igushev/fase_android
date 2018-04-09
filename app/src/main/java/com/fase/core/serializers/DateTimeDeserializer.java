@@ -2,6 +2,7 @@ package com.fase.core.serializers;
 
 import android.text.TextUtils;
 
+import com.fase.util.DateTimeUtil;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -38,43 +39,43 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
         // try parse via stock DateFormat class
         try {
             DateFormat dateFormat = DateFormat.getInstance();
-            return dateFormat.parse(date);
+            return DateTimeUtil.utcToLocalDate(dateFormat.parse(date));
         } catch (ParseException ignored) {
         }
         // try parse yyyy-mm-dd format
         try {
             DateTime dateTime = dateOnlyFormat.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse yyyy-mm-dd hh:mm:ss format
         try {
             DateTime dateTime = dateAndTimeFormat.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse yyyy-mm-dd hh:mm format
         try {
             DateTime dateTime = dateAndTimeFormat1.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse dd/MM/yyyy format
         try {
             DateTime dateTime = dateOnlySlashedFormat.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse ISO date
         try {
             DateTime dateTime = ISOWithoutMillisOrOffset.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse yyyy-MM-dd'T'HH:mm:ssZ format
         try {
             DateTime dateTime = ISOWithoutMillisOrOffsetWithTimezone.parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception ignored) {
         }
         // try parse ISO date
@@ -82,7 +83,7 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
             DateTime dateTime = ISODateTimeFormat.dateTimeParser()
                     .withOffsetParsed()
                     .parseDateTime(date);
-            return dateTime.toDate();
+            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
         } catch (Exception e) {
             Timber.e("Error parsing date");
         }
