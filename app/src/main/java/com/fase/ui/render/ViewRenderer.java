@@ -117,6 +117,8 @@ public class ViewRenderer {
         void backPressed();
 
         void requestContact(RequestContactDataHolder holder);
+
+        void hideKeyboard();
     }
 
     private Context mContext;
@@ -176,14 +178,13 @@ public class ViewRenderer {
     private View renderView(Tuple tuple, Orientation orientation, ArrayList<String> idList) {
         boolean isOrientationVertical = orientation == null || orientation == Orientation.VERTICAL;
 
-        // TODO: displayed
-
         Element element = tuple.getElement();
         if (element instanceof Frame) {
             Frame frameElement = (Frame) element;
             LinearLayout frameView = new LinearLayout(mContext);
             frameView.setTag(R.id.ELEMENT_TAG, element);
             frameView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            frameView.setVisibility(frameElement.getDisplayed() != null && !frameElement.getDisplayed() ? View.GONE : View.VISIBLE);
             for (Tuple itemTuple : frameElement.getIdElementList()) {
                 renderViewElement(frameView, itemTuple, frameElement.getOrientation(), getIdListCopyForItem(tuple, idList));
             }
@@ -213,6 +214,7 @@ public class ViewRenderer {
             labelView.setText(labelElement.getText());
             labelView.setLayoutParams(getParams(labelElement.getSize(), isOrientationVertical));
             labelView.setTextSize(labelElement.getFont() == null ? 1 : labelElement.getFont() * 15); // 15 default size
+            labelView.setVisibility(labelElement.getDisplayed() != null && !labelElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             if (labelElement.getAlign() != null) {
                 switch (labelElement.getAlign()) {
@@ -242,6 +244,7 @@ public class ViewRenderer {
             textView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             textView.setHint(textElement.getHint());
             textView.setText(textElement.getText());
+            textView.setVisibility(textElement.getDisplayed() != null && !textElement.getDisplayed() ? View.GONE : View.VISIBLE);
             if (!TextUtils.isEmpty(textElement.getText())) {
                 textView.setSelection(textElement.getText().length());
             }
@@ -288,6 +291,7 @@ public class ViewRenderer {
             switchView.setTag(R.id.ELEMENT_TAG, element);
             switchView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             switchView.setText(switchElement.getText());
+            switchView.setVisibility(switchElement.getDisplayed() != null && !switchElement.getDisplayed() ? View.GONE : View.VISIBLE);
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
             if (switchElement.getAlign() != null) {
                 switch (switchElement.getAlign()) {
@@ -323,6 +327,7 @@ public class ViewRenderer {
             ClickableSpinner selectView = new ClickableSpinner(mContext);
             selectView.setTag(R.id.ELEMENT_TAG, element);
             selectView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            selectView.setVisibility(selectElement.getDisplayed() != null && !selectElement.getDisplayed() ? View.GONE : View.VISIBLE);
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
             if (selectElement.getAlign() != null) {
                 switch (selectElement.getAlign()) {
@@ -382,6 +387,7 @@ public class ViewRenderer {
             SeekBar sliderView = new SeekBar(mContext);
             sliderView.setTag(R.id.ELEMENT_TAG, element);
             sliderView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            sliderView.setVisibility(sliderElement.getDisplayed() != null && !sliderElement.getDisplayed() ? View.GONE : View.VISIBLE);
             sliderView.setLayoutParams(getParams(null, isOrientationVertical));
 
             final int minValue = sliderElement.getMinValue() != null ? (int) (sliderElement.getMinValue() * 100) : 0;
@@ -421,6 +427,7 @@ public class ViewRenderer {
             ImageView imageView = new ImageView(mContext);
             imageView.setTag(R.id.ELEMENT_TAG, element);
             imageView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            imageView.setVisibility(imageElement.getDisplayed() != null && !imageElement.getDisplayed() ? View.GONE : View.VISIBLE);
             imageView.setLayoutParams(getParams(null, isOrientationVertical));
             if (!TextUtils.isEmpty(imageElement.getFilename())) {
                 mDataManager.getResourcePath(imageElement.getFilename())
@@ -488,7 +495,11 @@ public class ViewRenderer {
                             });
                     mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_TAG, element);
                     mViewHolder.vFloatingActionButton.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                    mViewHolder.vFloatingActionButton.show();
+                    if (buttonElement.getDisplayed() != null && !buttonElement.getDisplayed()) {
+                        mViewHolder.vFloatingActionButton.hide();
+                    } else {
+                        mViewHolder.vFloatingActionButton.show();
+                    }
                     return null;
                 case NEXT_STEP_BUTTON_ID: // configure button in toolbar
                     if (imageTuple != null) {
@@ -524,6 +535,7 @@ public class ViewRenderer {
                     buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
                     buttonView.setLayoutParams(getParams(null, isOrientationVertical));
                     buttonView.setText(buttonElement.getText());
+                    buttonView.setVisibility(buttonElement.getDisplayed() != null && !buttonElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
                     if (imageTuple != null) {
                         Image imageElement = (Image) imageTuple.getElement();
@@ -563,6 +575,7 @@ public class ViewRenderer {
             editText.setLayoutParams(getParams(dateTimePickerElement.getSize(), isOrientationVertical));
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
+            editText.setVisibility(dateTimePickerElement.getDisplayed() != null && !dateTimePickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             switch (dateTimePickerElement.getType()) {
                 case DATE:
@@ -632,6 +645,7 @@ public class ViewRenderer {
             autoCompleteTextView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             autoCompleteTextView.setLayoutParams(getParams(placesPickerElement.getSize(), isOrientationVertical));
             autoCompleteTextView.setHint(placesPickerElement.getHint());
+            autoCompleteTextView.setVisibility(placesPickerElement.getDisplayed() != null && !placesPickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES).build();
             CityAutocompleteAdapter mAdapter = new CityAutocompleteAdapter(mContext, FaseApp.getGoogleApiHelper().getGoogleApiClient(), typeFilter);
@@ -677,6 +691,7 @@ public class ViewRenderer {
             WebView webView = new WebView(mContext);
             webView.setTag(R.id.ELEMENT_TAG, element);
             webView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            webView.setVisibility(webElement.getDisplayed() != null && !webElement.getDisplayed() ? View.GONE : View.VISIBLE);
             webView.setLayoutParams(getParams(webElement.getSize(), isOrientationVertical));
 
             WebSettings webSettings = webView.getSettings();
@@ -756,6 +771,7 @@ public class ViewRenderer {
             editText.setLayoutParams(getParams(contactPicker.getSize(), isOrientationVertical));
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
+            editText.setVisibility(contactPicker.getDisplayed() != null && !contactPicker.getDisplayed() ? View.GONE : View.VISIBLE);
 
             if (contactPicker.getContact() != null) {
                 if (!TextUtils.isEmpty(contactPicker.getContact().getDisplayName())) {
@@ -799,6 +815,8 @@ public class ViewRenderer {
             ContextThemeWrapper wrappedContext = new ContextThemeWrapper(mContext, R.style.NavigationTextView);
             TextView menuItemView = new TextView(wrappedContext);
             menuItemView.setText(menuItemElement.getText());
+            menuItemView.setVisibility(menuItemElement.getDisplayed() != null && !menuItemElement.getDisplayed() ? View.GONE : View.VISIBLE);
+
             if (menuItemElement.getOnClick() != null) {
                 RxView.clicks(menuItemView)
                         .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
@@ -821,6 +839,7 @@ public class ViewRenderer {
             }
             return menuItemView;
         } else if (element instanceof Separator) {
+            Separator separatorElement = (Separator) element;
             View separatorView = new View(mContext);
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
             if (isOrientationVertical) {
@@ -829,6 +848,8 @@ public class ViewRenderer {
                 params.width = 1;
             }
             separatorView.setLayoutParams(params);
+            separatorView.setVisibility(separatorElement.getDisplayed() != null && !separatorElement.getDisplayed() ? View.GONE : View.VISIBLE);
+
             return separatorView;
         } else if (element instanceof Alert) {
             Alert alertElement = (Alert) element;
@@ -929,6 +950,7 @@ public class ViewRenderer {
             updateElement(response.getElementsUpdate());
         }
         if (response.getScreen() != null) {
+            mRendererCallback.hideKeyboard();
             Screen screen = response.getScreen();
             if (screen.getOnRefresh() != null) {
                 mViewHolder.vSwipeRefreshLayout.setEnabled(true);
@@ -1017,13 +1039,15 @@ public class ViewRenderer {
                         ((TextView) resultView).setText(value);
                     } else if (resultView instanceof ClickableSpinner) {
                         ClickableSpinner spinner = (ClickableSpinner) resultView;
-                        if (spinner.getAdapter() instanceof SpinnerAdapterWithoutEmptyItem) {
-                            SpinnerAdapterWithoutEmptyItem<String, String> adapter = (SpinnerAdapterWithoutEmptyItem<String, String>) spinner.getAdapter();
-                            adapter.selectValue(value);
-                        } else {
-                            SpinnerAdapter<String, String> adapter = (SpinnerAdapter) spinner.getAdapter();
-                            adapter.selectValue(value);
+                        android.widget.SpinnerAdapter adapter = spinner.getAdapter();
+                        for (int j = 0; j < adapter.getCount(); j++) {
+                            if (adapter.getItem(j) instanceof Entry) {
+                                if (((Entry) adapter.getItem(j)).name.equals(value)) {
+                                    spinner.setSelection(j);
+                                }
+                            }
                         }
+
                     } else if (resultView instanceof SeekBar) {
                         try {
                             ((SeekBar) resultView).setProgress((Integer.parseInt(value) * 100));

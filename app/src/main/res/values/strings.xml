@@ -18,4 +18,5 @@
     <string name="choose_time_title">Choose time</string>
     <string name="you_have_unread_messages">You have unread messages</string>
     <string name="skip">Skip</string>
+    <string name="restart">Restart</string>
 </resources>

@@ -97,7 +97,10 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                     getViewState().hideProgress();
                     getViewState().render(response);
                     ignoreUpdates = false;
-                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> elementCallback(idList, method, requestLocale)));
+                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> {
+                    mDataManager.setCurrentSessionId(null);
+                    initScreen();
+                }));
     }
 
     public Disposable intiElementUpdates() {
@@ -142,6 +145,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                             }).toObservable();
                 }).map(storeSessionAndScreenIds())
                 .compose(RxUtil.applyIoAndMainSchedulers())
+                .onErrorReturnItem(new Response())
                 .subscribe(response -> getViewState().render(response),
                         throwable -> {
                             Timber.e(throwable, "Error getting data");

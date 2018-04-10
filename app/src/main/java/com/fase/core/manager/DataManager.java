@@ -48,7 +48,9 @@ public class DataManager {
         Device device = new Device();
         device.setDeviceToken(getDeviceToken());
         device.setDeviceType(BuildConfig.DEVICE_TYPE);
-        device.setPixelDensity(FaseApp.getRes().getDisplayMetrics().density);
+        float density = FaseApp.getRes().getDisplayMetrics().density;
+        density = (float) (Math.floor(density * 4) / 4f);
+        device.setPixelDensity(density);
         return device;
     }
 

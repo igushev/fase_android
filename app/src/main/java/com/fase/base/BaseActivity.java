@@ -251,7 +251,7 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
 
     @Override
     public void showErrorSkipRetryDialog(Runnable retryAction) {
-        AlertDialogFragment.newInstance(getString(R.string.error_occurred), getString(R.string.retry), getString(R.string.skip),
+        AlertDialogFragment.newInstance(getString(R.string.error_occurred), getString(R.string.restart), getString(R.string.skip),
                 (dialog, which) -> retryAction.run(), (dialog, which) -> { /* skip */ })
                 .show(getSupportFragmentManager());
     }

@@ -209,6 +209,11 @@ public class MainActivity extends CommonActivity implements MainActivityView {
                             startActivityForResult(intent, GET_CONTACT);
                         });
             }
+
+            @Override
+            public void hideKeyboard() {
+                MainActivity.this.hideKeyboard();
+            }
         });
     }
 
