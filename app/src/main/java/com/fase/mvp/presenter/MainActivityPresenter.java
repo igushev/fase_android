@@ -43,8 +43,11 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
 
     private boolean ignoreUpdates = false;
 
-    public void initScreen() {
-        ignoreUpdates = false;
+    public void initScreen(boolean restart) {
+        if (restart) {
+            mDataManager.setCurrentSessionId(null);
+            ignoreUpdates = true;
+        }
         Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ? mDataManager.getService() : mDataManager.getScreen();
         screenRequest
                 .flatMap(this::processResources)
@@ -53,7 +56,8 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                 .subscribe(response -> {
                     getViewState().hideProgress();
                     getViewState().render(response);
-                }, new GeneralErrorHandler(getViewState(), null, this::initScreen));
+                    ignoreUpdates = false;
+                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> initScreen(true)));
     }
 
     public void elementCallback(List<String> idList, String method, Boolean requestLocale) {
@@ -97,10 +101,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                     getViewState().hideProgress();
                     getViewState().render(response);
                     ignoreUpdates = false;
-                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> {
-                    mDataManager.setCurrentSessionId(null);
-                    initScreen();
-                }));
+                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> initScreen(true)));
     }
 
     public Disposable intiElementUpdates() {

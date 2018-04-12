@@ -89,7 +89,7 @@ public class MainActivity extends CommonActivity implements MainActivityView {
                             showError("Access rights not granted");
                             return;
                         }
-                        mPresenter.initScreen();
+                        mPresenter.initScreen(false);
                     });
         }
     }

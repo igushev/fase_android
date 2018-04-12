@@ -52,6 +52,7 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
         } else if (throwable instanceof HttpException) {
             if (throwable.getMessage().contains("500")) {
                 showErrorSkipRetry(mRetryAction);
+                return; // ignore withAction call
             } else {
                 showError(throwable.getMessage());
                 Timber.e(RxJava2Debug.getEnhancedStackTrace(throwable));
