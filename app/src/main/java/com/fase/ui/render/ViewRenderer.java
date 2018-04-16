@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -27,9 +28,9 @@ import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -99,8 +100,10 @@ public class ViewRenderer {
     private static final String NEXT_STEP_BUTTON_ID = "next_step_button";
     private static final String PREV_STEP_BUTTON_ID = "prev_step_button";
     private static final String CONTEXT_MENU = "context_menu";
+    private Gson mGson = new Gson();
 
     public interface RendererCallback {
+
         void showAlert(String message, String firstButtonName, List<String> firstButtonIdList, String firstButtonMethod, Boolean firstButtonRequestLocale,
                        String secondButtonName, List<String> secondButtonIdList, String secondButtonMethod, Boolean secondButtonRequestLocale);
 
@@ -274,6 +277,10 @@ public class ViewRenderer {
                 textView.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
             }
 
+            if (textElement.getSize() == Size.MAX) {
+                textView.setMinLines(3);
+            }
+
             RxTextView.afterTextChangeEvents(textView)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                     .skip(1)
@@ -344,7 +351,7 @@ public class ViewRenderer {
             }
             selectView.setLayoutParams(params);
 
-            ArrayList<Entry<String, String>> itemsList = new ArrayList<>();
+            final ArrayList<Entry<String, String>> itemsList = new ArrayList<>();
             if (selectElement.getItems() != null) {
                 for (String item : selectElement.getItems()) {
                     itemsList.add(new Entry<>(item, item));
@@ -368,8 +375,11 @@ public class ViewRenderer {
             selectView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (!elementsUpdating && position != 0) {
-                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position - 1).name) // -1 because have empty element
+                    if (!elementsUpdating) {
+                        if (selectView.getAdapter().getCount() != itemsList.size()) {
+                            position = position - 1;  // -1 because have empty element
+                        }
+                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position).name)
                                 .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                                 .compose(RxUtil.applySingleIoAndMainSchedulers())
                                 .subscribe();
@@ -388,17 +398,19 @@ public class ViewRenderer {
             sliderView.setTag(R.id.ELEMENT_TAG, element);
             sliderView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             sliderView.setVisibility(sliderElement.getDisplayed() != null && !sliderElement.getDisplayed() ? View.GONE : View.VISIBLE);
-            sliderView.setLayoutParams(getParams(null, isOrientationVertical));
+            LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            sliderView.setLayoutParams(params);
 
             final int minValue = sliderElement.getMinValue() != null ? (int) (sliderElement.getMinValue() * 100) : 0;
             if (sliderElement.getMaxValue() != null) {
-                sliderView.setMax((int) (sliderElement.getMinValue() * 100) + minValue);
+                sliderView.setMax((int) (sliderElement.getMaxValue() * 100) + minValue);
             }
             if (sliderElement.getStep() != null) {
                 sliderView.incrementProgressBy((int) (sliderElement.getStep() * 100));
             }
             if (sliderElement.getValue() != null) {
-                sliderView.setProgress((int) (sliderElement.getValue() * 100));
+                sliderView.setProgress((int) (sliderElement.getValue() * 100) + minValue);
             }
 
             sliderView.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -478,7 +490,7 @@ public class ViewRenderer {
                                             }
                                         }, throwable -> Timber.e(throwable, "Error getting image file path"));
                             } else {
-                                throw new IllegalArgumentException("Image filename empty");
+                                mRendererCallback.showError("Image file path empty");
                             }
                         }
                     }
@@ -504,13 +516,13 @@ public class ViewRenderer {
                 case NEXT_STEP_BUTTON_ID: // configure button in toolbar
                     if (imageTuple != null) {
                         Image imageElement = (Image) imageTuple.getElement();
-                        if (imageElement != null) {
+                        if (imageElement != null && !TextUtils.isEmpty(imageElement.getFilename())) {
                             mDataManager.getResourcePath(imageElement.getFilename())
                                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                                     .subscribe(filePath -> initActionButton(0, Drawable.createFromPath(filePath), buttonElement.getText()),
                                             throwable -> Timber.e(throwable, "Error getting image file path"));
                         } else {
-                            throw new IllegalArgumentException("Image filename empty");
+                            mRendererCallback.showError("Image file path empty");
                         }
                     } else {
                         initActionButton(0, null, buttonElement.getText());
@@ -530,41 +542,73 @@ public class ViewRenderer {
                     }
                     return null;
                 default:
-                    android.widget.Button buttonView = new android.widget.Button(mContext);
-                    buttonView.setTag(R.id.ELEMENT_TAG, element);
-                    buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                    buttonView.setLayoutParams(getParams(null, isOrientationVertical));
-                    buttonView.setText(buttonElement.getText());
-                    buttonView.setVisibility(buttonElement.getDisplayed() != null && !buttonElement.getDisplayed() ? View.GONE : View.VISIBLE);
+                    if (!TextUtils.isEmpty(buttonElement.getText())) {
+                        android.widget.Button buttonView = new android.widget.Button(mContext);
+                        buttonView.setTag(R.id.ELEMENT_TAG, element);
+                        buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+                        buttonView.setLayoutParams(getParams(null, isOrientationVertical));
+                        buttonView.setVisibility(buttonElement.getDisplayed() != null && !buttonElement.getDisplayed() ? View.GONE : View.VISIBLE);
+                        buttonView.setText(buttonElement.getText());
 
-                    if (imageTuple != null) {
-                        Image imageElement = (Image) imageTuple.getElement();
-                        if (imageElement != null) {
-                            mDataManager.getResourcePath(imageElement.getFilename())
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .subscribe(filePath -> {
-                                                buttonView.setCompoundDrawablePadding(16);
-                                                buttonView.setCompoundDrawablesWithIntrinsicBounds(null, Drawable.createFromPath(filePath), null, null);
-                                            },
-                                            throwable -> Timber.e(throwable, "Error getting image file path"));
-                        } else {
-                            throw new IllegalArgumentException("Image filename empty");
+                        if (imageTuple != null) {
+                            Image imageElement = (Image) imageTuple.getElement();
+                            if (imageElement != null && !TextUtils.isEmpty(imageElement.getFilename())) {
+                                mDataManager.getResourcePath(imageElement.getFilename())
+                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                        .subscribe(filePath -> {
+                                                    buttonView.setCompoundDrawablePadding(16);
+                                                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null, Drawable.createFromPath(filePath), null, null);
+                                                },
+                                                throwable -> Timber.e(throwable, "Error getting image file path"));
+                            } else {
+                                mRendererCallback.showError("Image file path empty");
+                            }
                         }
+
+                        Tuple finalMenuTuple1 = menuTuple;
+                        RxView.clicks(buttonView)
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .subscribe(click -> {
+                                    if (finalMenuTuple1 != null) {
+                                        renderBottomSheetMenu(finalMenuTuple1, getIdListCopyForItem(tuple, idList));
+                                    } else if (buttonElement.getOnClick() != null) {
+                                        mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
+                                    }
+                                });
+
+                        return buttonView;
+                    } else {
+                        ImageButton buttonView = new ImageButton(mContext);
+                        buttonView.setTag(R.id.ELEMENT_TAG, element);
+                        buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+                        buttonView.setLayoutParams(getParams(null, isOrientationVertical));
+                        buttonView.setVisibility(buttonElement.getDisplayed() != null && !buttonElement.getDisplayed() ? View.GONE : View.VISIBLE);
+
+                        if (imageTuple != null) {
+                            Image imageElement = (Image) imageTuple.getElement();
+                            if (imageElement != null && !TextUtils.isEmpty(imageElement.getFilename())) {
+                                mDataManager.getResourcePath(imageElement.getFilename())
+                                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                        .subscribe(filePath -> buttonView.setImageDrawable(Drawable.createFromPath(filePath)),
+                                                throwable -> Timber.e(throwable, "Error getting image file path"));
+                            } else {
+                                mRendererCallback.showError("Image file path empty");
+                            }
+                        }
+
+                        Tuple finalMenuTuple1 = menuTuple;
+                        RxView.clicks(buttonView)
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .subscribe(click -> {
+                                    if (finalMenuTuple1 != null) {
+                                        renderBottomSheetMenu(finalMenuTuple1, getIdListCopyForItem(tuple, idList));
+                                    } else if (buttonElement.getOnClick() != null) {
+                                        mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
+                                    }
+                                });
+
+                        return buttonView;
                     }
-
-
-                    Tuple finalMenuTuple1 = menuTuple;
-                    RxView.clicks(buttonView)
-                            .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                            .subscribe(click -> {
-                                if (finalMenuTuple1 != null) {
-                                    renderBottomSheetMenu(finalMenuTuple1, getIdListCopyForItem(tuple, idList));
-                                } else if (buttonElement.getOnClick() != null) {
-                                    mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), buttonElement.getOnClick().getMethod(), buttonElement.getRequestLocale());
-                                }
-                            });
-
-                    return buttonView;
             }
         } else if (element instanceof DateTimePicker) {
             DateTimePicker dateTimePickerElement = (DateTimePicker) element;
@@ -609,9 +653,7 @@ public class ViewRenderer {
                                         date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT));
                                         break;
                                 }
-                                if (date != null) {
-                                    return DateTimeUtil.formatDate(date, DateTimeUtil.SERVER_DATE_TIME);
-                                }
+                                return DateTimeUtil.formatDate(date, DateTimeUtil.SERVER_DATE_TIME);
                             }
                             return "";
                         })
@@ -645,6 +687,9 @@ public class ViewRenderer {
             autoCompleteTextView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             autoCompleteTextView.setLayoutParams(getParams(placesPickerElement.getSize(), isOrientationVertical));
             autoCompleteTextView.setHint(placesPickerElement.getHint());
+            autoCompleteTextView.setMaxLines(1);
+
+            autoCompleteTextView.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
             autoCompleteTextView.setVisibility(placesPickerElement.getDisplayed() != null && !placesPickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES).build();
@@ -666,7 +711,7 @@ public class ViewRenderer {
                         Place place = places.get(0);
                         com.fase.model.data.Place placeModel = PlaceUtils.getPlace(FaseApp.getApplication().getApplicationContext(), place);
                         if (!elementsUpdating) {
-                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), new Gson().toJson(placeModel))
+                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), mGson.toJson(placeModel))
                                     .toObservable()
                                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                                     .compose(RxUtil.applyIoAndMainSchedulers())
@@ -692,8 +737,11 @@ public class ViewRenderer {
             webView.setTag(R.id.ELEMENT_TAG, element);
             webView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             webView.setVisibility(webElement.getDisplayed() != null && !webElement.getDisplayed() ? View.GONE : View.VISIBLE);
-            webView.setLayoutParams(getParams(webElement.getSize(), isOrientationVertical));
+            LinearLayout.LayoutParams params = getParams(webElement.getSize(), isOrientationVertical);
+//            params.height = 200;
+//            webView.setMinimumHeight(200);
 
+            webView.setLayoutParams(params);
             WebSettings webSettings = webView.getSettings();
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setUseWideViewPort(true);
@@ -747,7 +795,11 @@ public class ViewRenderer {
             });
 
             if (!TextUtils.isEmpty(webElement.getUrl())) {
-                webView.post(() -> NetworkUtil.checkNetworkWithRetryDialog(mContext, () -> webView.loadUrl(webElement.getUrl())));
+                if (!webElement.getUrl().contains("http")) {
+                    mRendererCallback.showError("Wrong web url format. Url must have http:// or https://");
+                } else {
+                    webView.post(() -> NetworkUtil.checkNetworkWithRetryDialog(mContext, () -> webView.loadUrl(webElement.getUrl())));
+                }
             }
             return webView;
         } else if (element instanceof Navigation) {
@@ -824,9 +876,9 @@ public class ViewRenderer {
             }
 
             if (menuItemElement.getIdElementList() != null && !menuItemElement.getIdElementList().isEmpty()) {
-                Image image = (Image) menuItemElement.getIdElementList().get(0).getElement();
-                if (image != null) {
-                    mDataManager.getResourcePath(image.getFilename())
+                Image imageElement = (Image) menuItemElement.getIdElementList().get(0).getElement();
+                if (imageElement != null && !TextUtils.isEmpty(imageElement.getFilename())) {
+                    mDataManager.getResourcePath(imageElement.getFilename())
                             .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                             .subscribe(filePath -> {
                                         menuItemView.setCompoundDrawablePadding(16);
@@ -834,7 +886,7 @@ public class ViewRenderer {
                                     },
                                     throwable -> Timber.e(throwable, "Error getting image for image"));
                 } else {
-                    throw new IllegalArgumentException("Image filename empty");
+                    mRendererCallback.showError("Image file path empty");
                 }
             }
             return menuItemView;
@@ -916,8 +968,8 @@ public class ViewRenderer {
                         orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT);
             }
         } else {
-            return new LinearLayout.LayoutParams(orientationVertical ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT,
-                    orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT);
+            return new LinearLayout.LayoutParams(orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.WRAP_CONTENT,
+                    orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
@@ -963,13 +1015,15 @@ public class ViewRenderer {
             // TODO: load more
 
             if (screen.getScrollable() != null && screen.getScrollable()) {
-                ScrollView scrollView = new ScrollView(mContext);
+                NestedScrollView scrollView = new NestedScrollView(mContext);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 scrollView.setLayoutParams(params);
-                int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, FaseApp.getRes().getDisplayMetrics());
-                scrollView.setPadding(0, 0, 0, padding);
-                scrollView.setClipToPadding(false);
                 scrollView.addView(getRenderedLayout(screen.getIdElementList(), true));
+                if (mViewHolder.vFloatingActionButton.getVisibility() == View.VISIBLE) {
+                    int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, FaseApp.getRes().getDisplayMetrics());
+                    scrollView.setPadding(0, 0, 0, padding);
+                    scrollView.setClipToPadding(false);
+                }
                 mViewHolder.vContentContainer.addView(scrollView);
             } else {
                 mViewHolder.vContentContainer.addView(getRenderedLayout(screen.getIdElementList(), false));
@@ -1023,12 +1077,30 @@ public class ViewRenderer {
                 if (resultView != null && resultView != mViewHolder.vContentContainer) {
                     if (resultView instanceof AutoCompleteTextView) {
                         AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) resultView;
-                        autoCompleteTextView.setText(value);
+                        if (!TextUtils.isEmpty(value)) {
+                            com.fase.model.data.Place place = mGson.fromJson(value, com.fase.model.data.Place.class);
+                            if (place != null) {
+                                autoCompleteTextView.setText(place.getCity());
+                            } else {
+                                autoCompleteTextView.setText(value);
+                            }
+                        }
+                        String editTextString = autoCompleteTextView.getText().toString();
+                        if (!TextUtils.isEmpty(editTextString)) {
+                            autoCompleteTextView.setSelection(editTextString.length());
+                        }
                     } else if (resultView instanceof EditText) {
                         EditText editText = (EditText) resultView;
-                        editText.setText(value);
-                        if (!TextUtils.isEmpty(value)) {
-                            editText.setSelection(value.length());
+                        Object tag = editText.getTag(R.id.ELEMENT_TAG);
+                        if (tag != null && tag instanceof DateTimePicker) {
+                            editText.setText(!TextUtils.isEmpty(value) ? DateTimeUtil.convertDateFormat(value, DateTimeUtil.SERVER_DATE_TIME, DateTimeUtil.APP_DATE_TIME_FORMAT) : value);
+                        } else {
+                            editText.setText(value);
+                        }
+
+                        String editTextString = editText.getText().toString();
+                        if (!TextUtils.isEmpty(editTextString)) {
+                            editText.setSelection(editTextString.length());
                         }
                     } else if (resultView instanceof android.widget.Switch) {
                         Boolean boolValue = Boolean.parseBoolean(value);
@@ -1047,10 +1119,11 @@ public class ViewRenderer {
                                 }
                             }
                         }
-
                     } else if (resultView instanceof SeekBar) {
+                        Slider element = (Slider) resultView.getTag(R.id.ELEMENT_TAG);
+                        final int minValue = element.getMinValue() != null ? (int) (element.getMinValue() * 100) : 0;
                         try {
-                            ((SeekBar) resultView).setProgress((Integer.parseInt(value) * 100));
+                            ((SeekBar) resultView).setProgress((int) (Double.parseDouble(value) * 100) + minValue);
                         } catch (Exception ignored) {
                         }
                     } else if (resultView instanceof WebView) {

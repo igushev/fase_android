@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +17,9 @@ import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.fase.R;
 import com.fase.ui.fragment.dialog.AlertDialogFragment;
 import com.fase.ui.fragment.dialog.ProgressDialogFragment;
+
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,6 +39,8 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
     protected boolean isBackAction = false;
 
     private ProgressDialogFragment mProgressDialog;
+    private Snackbar mSnackBar;
+    private Queue<String> mErrorsList = new ArrayDeque<>();
 
     protected abstract int getLayoutResourceId();
 
@@ -92,7 +98,20 @@ public abstract class BaseActivity extends MvpAppCompatActivity implements BaseA
 
     private void showSnackbar(String message) {
         if (vRootView != null) {
-            Snackbar.make(vRootView, message, Snackbar.LENGTH_LONG).show();
+            if (mSnackBar != null && mSnackBar.isShown()) {
+                mErrorsList.add(message);
+            } else {
+                mSnackBar = Snackbar.make(vRootView, message, Snackbar.LENGTH_LONG);
+                mSnackBar.addCallback(new BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        if (!mErrorsList.isEmpty()) {
+                            showSnackbar(mErrorsList.poll());
+                        }
+                    }
+                });
+                mSnackBar.show();
+            }
         }
     }
 
