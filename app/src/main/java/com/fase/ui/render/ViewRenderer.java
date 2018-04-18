@@ -377,6 +377,9 @@ public class ViewRenderer {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (!elementsUpdating) {
                         if (selectView.getAdapter().getCount() != itemsList.size()) {
+                            if (position != 0) {
+                                return;
+                            }
                             position = position - 1;  // -1 because have empty element
                         }
                         mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position).name)
