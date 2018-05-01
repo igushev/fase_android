@@ -560,7 +560,7 @@ public class ViewRenderer {
                                         .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                                         .subscribe(filePath -> {
                                                     buttonView.setCompoundDrawablePadding(16);
-                                                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null, Drawable.createFromPath(filePath), null, null);
+                                                    buttonView.setCompoundDrawables(null, getDrawableWithBounds(filePath), null, null);
                                                 },
                                                 throwable -> Timber.e(throwable, "Error getting image file path"));
                             } else {
@@ -690,9 +690,8 @@ public class ViewRenderer {
             autoCompleteTextView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             autoCompleteTextView.setLayoutParams(getParams(placesPickerElement.getSize(), isOrientationVertical));
             autoCompleteTextView.setHint(placesPickerElement.getHint());
-            autoCompleteTextView.setMaxLines(1);
-
-            autoCompleteTextView.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+            autoCompleteTextView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            autoCompleteTextView.setSingleLine(true);
             autoCompleteTextView.setVisibility(placesPickerElement.getDisplayed() != null && !placesPickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES).build();
@@ -885,7 +884,7 @@ public class ViewRenderer {
                             .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                             .subscribe(filePath -> {
                                         menuItemView.setCompoundDrawablePadding(16);
-                                        menuItemView.setCompoundDrawablesWithIntrinsicBounds(Drawable.createFromPath(filePath), null, null, null);
+                                        menuItemView.setCompoundDrawables(getDrawableWithBounds(filePath), null, null, null);
                                     },
                                     throwable -> Timber.e(throwable, "Error getting image for image"));
                 } else {
@@ -942,6 +941,14 @@ public class ViewRenderer {
             return null;
         }
         return null;
+    }
+
+    @NonNull
+    private Drawable getDrawableWithBounds(String filePath) {
+        Drawable drawable = Drawable.createFromPath(filePath);
+        int bound = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, drawable.getIntrinsicHeight(), FaseApp.getRes().getDisplayMetrics());
+        drawable.setBounds(0, 0, bound, bound);
+        return drawable;
     }
 
     private void convertButtonToMenuItem(Tuple itemTuple) {
@@ -1053,7 +1060,9 @@ public class ViewRenderer {
             mViewHolder.vButtonFirstText.setVisibility(View.VISIBLE);
             if (drawable != null) {
                 mViewHolder.vButtonFirstText.setCompoundDrawablePadding(16);
-                mViewHolder.vButtonFirstText.setCompoundDrawablesWithIntrinsicBounds(drawable, null, null, null);
+                int bound = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, drawable.getIntrinsicHeight(), FaseApp.getRes().getDisplayMetrics());
+                drawable.setBounds(0, 0, bound, bound);
+                mViewHolder.vButtonFirstText.setCompoundDrawables(drawable, null, null, null);
             }
         } else {
             mViewHolder.vButtonFirstImage.setImageDrawable(null);
