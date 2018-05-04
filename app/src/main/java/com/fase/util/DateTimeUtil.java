@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -51,8 +52,8 @@ public class DateTimeUtil {
 
     public static String convertDateFormat(String date, String oldFormatPattern, String newFormatPattern) {
         String result = date;
-        SimpleDateFormat oldFormat = new SimpleDateFormat(oldFormatPattern, Locale.getDefault());
         SimpleDateFormat newFormat = new SimpleDateFormat(newFormatPattern, Locale.getDefault());
+        SimpleDateFormat oldFormat = new SimpleDateFormat(oldFormatPattern, Locale.getDefault());
         newFormat.setTimeZone(TimeZone.getDefault());
         try {
             Date parsedDate = oldFormat.parse(date);
@@ -63,15 +64,24 @@ public class DateTimeUtil {
         return result;
     }
 
+    public static Date changeTimezoneOfDate(Date date, TimeZone fromTZ, TimeZone toTZ) {
+        Calendar calendar = GregorianCalendar.getInstance();
+        calendar.setTime(date);
+        long millis = calendar.getTimeInMillis();
+        long fromOffset = fromTZ.getOffset(millis);
+        long toOffset = toTZ.getOffset(millis);
+        long convertedTime = millis - (fromOffset - toOffset);
+        Calendar resultCalendar = GregorianCalendar.getInstance();
+        resultCalendar.setTimeInMillis(convertedTime);
+        return resultCalendar.getTime();
+    }
+
     public static Date toUtc(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return new Date(sdf.format(date));
+        return changeTimezoneOfDate(date, TimeZone.getDefault(), TimeZone.getTimeZone("UTC"));
     }
 
     public static Date utcToLocalDate(Date date) {
-        String timeZone = Calendar.getInstance().getTimeZone().getID();
-        return new Date(date.getTime() + TimeZone.getTimeZone(timeZone).getOffset(date.getTime()));
+        return changeTimezoneOfDate(date, TimeZone.getTimeZone("UTC"), TimeZone.getDefault());
     }
 
     private static Date tryParseDate(String date) {

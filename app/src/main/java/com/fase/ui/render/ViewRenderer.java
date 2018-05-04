@@ -35,6 +35,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.fase.FaseApp;
 import com.fase.R;
 import com.fase.core.manager.DataManager;
@@ -87,7 +89,9 @@ import com.jakewharton.rxbinding2.view.RxView;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import io.reactivex.disposables.CompositeDisposable;
@@ -277,10 +281,6 @@ public class ViewRenderer {
                 textView.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
             }
 
-            if (textElement.getSize() == Size.MAX) {
-                textView.setMinLines(3);
-            }
-
             RxTextView.afterTextChangeEvents(textView)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                     .skip(1)
@@ -377,15 +377,14 @@ public class ViewRenderer {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (!elementsUpdating) {
                         if (selectView.getAdapter().getCount() != itemsList.size()) {
-                            if (position != 0) {
-                                return;
-                            }
-                            position = position - 1;  // -1 because have empty element
+                            position -= 1;  // -1 because have empty element
                         }
-                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position).name)
-                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                .compose(RxUtil.applySingleIoAndMainSchedulers())
-                                .subscribe();
+                        if (position >= 0) {
+                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position).name)
+                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                    .compose(RxUtil.applySingleIoAndMainSchedulers())
+                                    .subscribe();
+                        }
                     }
                 }
 
@@ -440,6 +439,7 @@ public class ViewRenderer {
         } else if (element instanceof Image) {
             Image imageElement = (Image) element;
             ImageView imageView = new ImageView(mContext);
+            imageView.setAdjustViewBounds(true);
             imageView.setTag(R.id.ELEMENT_TAG, element);
             imageView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             imageView.setVisibility(imageElement.getDisplayed() != null && !imageElement.getDisplayed() ? View.GONE : View.VISIBLE);
@@ -451,6 +451,7 @@ public class ViewRenderer {
                                     if (!TextUtils.isEmpty(filePath)) {
                                         imageView.post(() -> Glide.with(imageView)
                                                 .load(filePath)
+                                                .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
                                                 .into(imageView));
                                     }
                                 },
@@ -458,6 +459,7 @@ public class ViewRenderer {
             } else if (!TextUtils.isEmpty(imageElement.getUrl())) {
                 imageView.post(() -> Glide.with(imageView)
                         .load(imageElement.getUrl())
+                        .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
                         .into(imageView));
             }
 
@@ -647,10 +649,15 @@ public class ViewRenderer {
                                 Date date = null;
                                 switch (dateTimePickerElement.getType()) {
                                     case DATE:
-                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_FORMAT));
+                                        date = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_FORMAT);
                                         break;
                                     case TIME:
-                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_TIME_FORMAT));
+                                        Date dateFromText = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_TIME_FORMAT);
+                                        Calendar resultCalendar = GregorianCalendar.getInstance();
+                                        resultCalendar.setTime(dateFromText);
+                                        Calendar calendar = GregorianCalendar.getInstance();
+                                        resultCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                                        date = DateTimeUtil.toUtc(resultCalendar.getTime());
                                         break;
                                     case DATETIME:
                                         date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT));
@@ -669,19 +676,33 @@ public class ViewRenderer {
 
             RxView.clicks(editText)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                    .subscribe(click -> mRendererCallback.showDateTimePicker(dateTimePickerElement.getType(), dateTimePickerElement.getDatetime(), date -> {
-                        switch (dateTimePickerElement.getType()) {
-                            case DATE:
-                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_FORMAT));
-                                break;
-                            case TIME:
-                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_TIME_FORMAT));
-                                break;
-                            case DATETIME:
-                                editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT));
-                                break;
+                    .subscribe(click -> {
+                        Date dateFromText = null;
+                        String dateText = editText.getText().toString();
+                        if (!TextUtils.isEmpty(dateText)) {
+                            if (dateTimePickerElement.getType() == DateTimePickerType.DATE) {
+                                dateFromText = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_FORMAT);
+                            } else if (dateTimePickerElement.getType() == DateTimePickerType.TIME) {
+                                dateFromText = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_TIME_FORMAT);
+                            } else {
+                                dateFromText = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT);
+                            }
                         }
-                    }));
+
+                        mRendererCallback.showDateTimePicker(dateTimePickerElement.getType(), dateFromText == null ? dateTimePickerElement.getDatetime() : dateFromText, date -> {
+                            switch (dateTimePickerElement.getType()) {
+                                case DATE:
+                                    editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_FORMAT));
+                                    break;
+                                case TIME:
+                                    editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_TIME_FORMAT));
+                                    break;
+                                case DATETIME:
+                                    editText.setText(DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT));
+                                    break;
+                            }
+                        });
+                    });
             return editText;
         } else if (element instanceof PlacePicker) {
             PlacePicker placesPickerElement = (PlacePicker) element;
@@ -740,8 +761,6 @@ public class ViewRenderer {
             webView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             webView.setVisibility(webElement.getDisplayed() != null && !webElement.getDisplayed() ? View.GONE : View.VISIBLE);
             LinearLayout.LayoutParams params = getParams(webElement.getSize(), isOrientationVertical);
-//            params.height = 200;
-//            webView.setMinimumHeight(200);
 
             webView.setLayoutParams(params);
             WebSettings webSettings = webView.getSettings();
@@ -978,8 +997,7 @@ public class ViewRenderer {
                         orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT);
             }
         } else {
-            return new LinearLayout.LayoutParams(orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.WRAP_CONTENT,
-                    orientationVertical ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.WRAP_CONTENT);
+            return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
@@ -1092,7 +1110,11 @@ public class ViewRenderer {
                         if (!TextUtils.isEmpty(value)) {
                             com.fase.model.data.Place place = mGson.fromJson(value, com.fase.model.data.Place.class);
                             if (place != null) {
-                                autoCompleteTextView.setText(place.getCity());
+                                if (!TextUtils.isEmpty(place.getCountry())) {
+                                    autoCompleteTextView.setText(String.format("%s, %s", place.getCity(), place.getCountry()));
+                                } else {
+                                    autoCompleteTextView.setText(place.getCity());
+                                }
                             } else {
                                 autoCompleteTextView.setText(value);
                             }
@@ -1105,7 +1127,19 @@ public class ViewRenderer {
                         EditText editText = (EditText) resultView;
                         Object tag = editText.getTag(R.id.ELEMENT_TAG);
                         if (tag != null && tag instanceof DateTimePicker) {
-                            editText.setText(!TextUtils.isEmpty(value) ? DateTimeUtil.convertDateFormat(value, DateTimeUtil.SERVER_DATE_TIME, DateTimeUtil.APP_DATE_TIME_FORMAT) : value);
+                            DateTimePicker picker = (DateTimePicker) tag;
+                            Date date = null;
+                            if (!TextUtils.isEmpty(value)) {
+                                date = DateTimeUtil.formatDate(value, DateTimeUtil.SERVER_DATE_TIME);
+                                date = DateTimeUtil.utcToLocalDate(date);
+                            }
+                            if (picker.getType() == DateTimePickerType.DATE) {
+                                editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_FORMAT) : value);
+                            } else if (picker.getType() == DateTimePickerType.TIME) {
+                                editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_TIME_FORMAT) : value);
+                            } else {
+                                editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT) : value);
+                            }
                         } else {
                             editText.setText(value);
                         }

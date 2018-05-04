@@ -13,6 +13,7 @@ import com.fase.base.BaseDialogFragment;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import timber.log.Timber;
 
@@ -67,7 +68,8 @@ public class TimePickDialog extends BaseDialogFragment implements android.app.Ti
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = GregorianCalendar.getInstance();
+        calendar.setTime(new Date());
         calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
         calendar.set(Calendar.MINUTE, minute);
 
