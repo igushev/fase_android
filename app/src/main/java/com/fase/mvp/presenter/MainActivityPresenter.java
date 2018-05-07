@@ -51,7 +51,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
         Single<Response> screenRequest = TextUtils.isEmpty(mDataManager.getCurrentSessionId()) ? mDataManager.getService() : mDataManager.getScreen();
         screenRequest
                 .flatMap(this::processResources)
-                .map(storeSessionAndScreenIds())
+                .map(storeHeadersData())
                 .compose(getBasicNetworkFlowSingleTransformer(true))
                 .subscribe(response -> {
                     getViewState().hideProgress();
@@ -88,14 +88,14 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                         elementCallback.setLocale(getLocale());
                     }
 
-                    return mDataManager.elementСallback(elementCallback)
+                    return mDataManager.elementCallback(elementCallback)
                             .flatMap(this::processResources)
                             .flatMap(response -> Single.zip(Observable.fromIterable(updateValues == null ? new ArrayList<>() : updateValues)
                                     .flatMap(updateValue -> mDataManager.deleteIfEquals(updateValue.getElementId(), updateValue.getValue())
                                             .toObservable())
                                     .toList(), Single.just(response), (booleans, response1) -> response1));
                 })
-                .map(storeSessionAndScreenIds())
+                .map(storeHeadersData())
                 .compose(getBasicNetworkFlowSingleTransformer(true))
                 .subscribe(response -> {
                     getViewState().hideProgress();
@@ -144,7 +144,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                                                     .toList(), Single.just(response), (booleans, response1) -> response1);
                                         });
                             }).toObservable();
-                }).map(storeSessionAndScreenIds())
+                }).map(storeHeadersData())
                 .compose(RxUtil.applyIoAndMainSchedulers())
                 .onErrorReturnItem(new Response())
                 .subscribe(response -> getViewState().render(response),
@@ -155,13 +155,16 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
     }
 
     @NonNull
-    private Function<Response, Response> storeSessionAndScreenIds() {
+    private Function<Response, Response> storeHeadersData() {
         return response -> {
             if (response.getScreenInfo() != null) {
                 mDataManager.setCurrentScreenId(response.getScreenInfo().getScreenId());
             }
             if (response.getSessionInfo() != null) {
                 mDataManager.setCurrentSessionId(response.getSessionInfo().getSessionId());
+            }
+            if (response.getVersionInfo() != null) {
+                mDataManager.setVersion(response.getVersionInfo().getVersion());
             }
             return response;
         };
@@ -175,21 +178,32 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
     }
 
     private SingleSource<? extends Response> processResources(Response response) {
-        if (response.getResources() != null && response.getResources().getResourceList() != null && !response.getResources().getResourceList().isEmpty()) {
-            return Single.zip(Single.just(response), Observable.fromIterable(response.getResources().getResourceList())
-                    .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
-                            .flatMap(isExist -> {
-                                File cache = FileUtils.createDefaultCacheDir(FaseApp.getApplication().getApplicationContext(), "images");
-                                String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
-                                return isExist ? Single.just(new File(cache, filename))
-                                        : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
-                            })
-                            .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
-                            .toObservable())
-                    .toList(), (resultResponse, isAddedList) -> resultResponse);
-        } else {
-            return Single.just(response);
-        }
+        return Single.just(response)
+                .flatMap(result -> {
+                    if (result.getResources() != null && result.getResources().isResetResources()) {
+                        return mDataManager.deleteResources()
+                                .flatMap(aBoolean -> Single.just(response));
+                    } else {
+                        return Single.just(response);
+                    }
+                })
+                .flatMap((Function<Response, SingleSource<Response>>) result -> {
+                    if (result.getResources() != null && result.getResources().getResourceList() != null && !result.getResources().getResourceList().isEmpty()) {
+                        return Single.zip(Single.just(response), Observable.fromIterable(result.getResources().getResourceList())
+                                .concatMap(resource -> mDataManager.isResourceExist(resource.getFilename())
+                                        .flatMap(isExist -> {
+                                            File cache = FileUtils.createDefaultCacheDir(FaseApp.getApplication().getApplicationContext(), "images");
+                                            String filename = resource.getFilename().substring(resource.getFilename().lastIndexOf("/") + 1);
+                                            return isExist ? Single.just(new File(cache, filename))
+                                                    : DownloadRawFileUtil.saveRawToFile(mDataManager.getResource(resource.getFilename()), new File(cache, filename));
+                                        })
+                                        .flatMap(file -> RxUtil.toSingle(mDataManager.putResourceToDb(resource.getFilename(), file.getPath())))
+                                        .toObservable())
+                                .toList(), (resultResponse, isAddedList) -> resultResponse);
+                    } else {
+                        return Single.just(response);
+                    }
+                });
     }
 
     private Locale getLocale() {
@@ -202,25 +216,6 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
         if (iso == null) {
             iso = FaseApp.getApplication().getResources().getConfiguration().locale.getCountry();
         }
-
-        //            ApiManager.callUrl("http://ip-api.com/json", new ApiCallback<String>() {
-//                @Override
-//                public void onCompleted(String s) {
-//                    try {
-//                        JSONObject jsonObject = new JSONObject(s);
-//                        iso = jsonObject.getString("countryCode");
-////                        city = jsonObject.getString("addressName");
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                    refreshCountryByIso();
-//                }
-//
-//                @Override
-//                public void onError(Throwable throwable) {
-//                    super.onError(throwable);
-//                }
-//            });
 
         return new Locale(iso.toUpperCase());
     }

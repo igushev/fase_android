@@ -81,6 +81,14 @@ public class DataManager {
         return mSharedPrefManager.getCurrentSessionId();
     }
 
+    public void setVersion(String version) {
+        mSharedPrefManager.setVersion(version);
+    }
+
+    public String getVersion() {
+        return mSharedPrefManager.getVersion();
+    }
+
     /**
      * Api methods
      */
@@ -101,11 +109,11 @@ public class DataManager {
     }
 
     public Single<Response> screenUpdate(ScreenUpdate screenUpdate) {
-        return mApiManager.screenUpdate(getCurrentSessionId(), getCurrentScreenId(), screenUpdate);
+        return mApiManager.screenUpdate(getCurrentSessionId(), getCurrentScreenId(), getVersion(), screenUpdate);
     }
 
-    public Single<Response> elementСallback(ElementCallback elementCallback) {
-        return mApiManager.elementСallback(getCurrentSessionId(), getCurrentScreenId(), elementCallback);
+    public Single<Response> elementCallback(ElementCallback elementCallback) {
+        return mApiManager.elementCallback(getCurrentSessionId(), getCurrentScreenId(), getVersion(), elementCallback);
     }
 
     public Single<ResponseBody> getResource(String fileName) {

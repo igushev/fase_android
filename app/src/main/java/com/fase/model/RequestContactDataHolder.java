@@ -11,13 +11,15 @@ public class RequestContactDataHolder {
     private ArrayList<String> idList;
     private String method;
     private Boolean requestLocale;
+    private boolean hasOnPick;
 
-    public RequestContactDataHolder(EditText contactTextView, String elementId, ArrayList<String> idList, String method, Boolean requestLocale) {
+    public RequestContactDataHolder(EditText contactTextView, String elementId, ArrayList<String> idList, String method, Boolean requestLocale, boolean hasOnPick) {
         this.contactTextView = contactTextView;
         this.elementId = elementId;
         this.idList = idList;
         this.method = method;
         this.requestLocale = requestLocale;
+        this.hasOnPick = hasOnPick;
     }
 
     public EditText getContactTextView() {
@@ -38,5 +40,9 @@ public class RequestContactDataHolder {
 
     public Boolean getRequestLocale() {
         return requestLocale;
+    }
+
+    public boolean isHasOnPick() {
+        return hasOnPick;
     }
 }

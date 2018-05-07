@@ -118,12 +118,12 @@ class ApiManager {
         return mApi.getScreen(sessionId, device);
     }
 
-    Single<Response> screenUpdate(String sessionId, String screenId, ScreenUpdate screenUpdate) {
-        return mApi.screenUpdate(sessionId, screenId, screenUpdate);
+    Single<Response> screenUpdate(String sessionId, String screenId, String version, ScreenUpdate screenUpdate) {
+        return mApi.screenUpdate(sessionId, screenId, version, screenUpdate);
     }
 
-    Single<Response> elementСallback(String sessionId, String screenId, ElementCallback elementCallback) {
-        return mApi.elementСallback(sessionId, screenId, elementCallback);
+    Single<Response> elementCallback(String sessionId, String screenId, String version, ElementCallback elementCallback) {
+        return mApi.elementCallback(sessionId, screenId, version, elementCallback);
     }
 
     Single<ResponseBody> getResource(String fileName) {

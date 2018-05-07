@@ -31,10 +31,12 @@ public interface FaseApi {
     Single<Response> getScreen(@Header("session-id") String sessionId, @Body Device device);
 
     @POST("/screenupdate")
-    Single<Response> screenUpdate(@Header("session-id") String sessionId, @Header("screen-id") String screenId, @Body ScreenUpdate screenUpdate);
+    Single<Response> screenUpdate(@Header("session-id") String sessionId, @Header("screen-id") String screenId,
+                                  @Header("version") String version, @Body ScreenUpdate screenUpdate);
 
     @POST("/elementcallback")
-    Single<Response> elementСallback(@Header("session-id") String sessionId, @Header("screen-id") String screenId, @Body ElementCallback elementCallback);
+    Single<Response> elementCallback(@Header("session-id") String sessionId, @Header("screen-id") String screenId,
+                                     @Header("version") String version, @Body ElementCallback elementCallback);
 
     @Streaming
     @GET("/getresource/filename/{filename}")

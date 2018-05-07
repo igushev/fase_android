@@ -246,42 +246,43 @@ public class ViewRenderer {
             return labelView;
         } else if (element instanceof Text) {
             Text textElement = (Text) element;
-            EditText textView = new EditText(mContext);
-            textView.setTag(R.id.ELEMENT_TAG, element);
-            textView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-            textView.setHint(textElement.getHint());
-            textView.setText(textElement.getText());
-            textView.setVisibility(textElement.getDisplayed() != null && !textElement.getDisplayed() ? View.GONE : View.VISIBLE);
+            EditText editText = new EditText(mContext);
+            editText.setTag(R.id.ELEMENT_TAG, element);
+            editText.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
+            editText.setHint(textElement.getHint());
+            editText.setText(textElement.getText());
+            editText.setVisibility(textElement.getDisplayed() != null && !textElement.getDisplayed() ? View.GONE : View.VISIBLE);
             if (!TextUtils.isEmpty(textElement.getText())) {
-                textView.setSelection(textElement.getText().length());
+                editText.setSelection(textElement.getText().length());
             }
-            textView.setLayoutParams(getParams(textElement.getSize(), isOrientationVertical));
+            editText.setLayoutParams(getParams(textElement.getSize(), isOrientationVertical));
+            editText.setGravity(Gravity.TOP);
 
             if (textElement.getType() != null) {
                 switch (textElement.getType()) {
                     case TEXT:
-                        textView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
                         break;
                     case EMAIL:
-                        textView.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+                        editText.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
                         break;
                     case PHONE:
-                        textView.setInputType(InputType.TYPE_CLASS_PHONE);
+                        editText.setInputType(InputType.TYPE_CLASS_PHONE);
                         break;
                     case DIGITS:
-                        textView.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                         break;
                 }
             } else {
-                textView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+                editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             }
 
             if (textElement.getMultiline() != null && textElement.getMultiline()) {
-                textView.setSingleLine(false);
-                textView.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
+                editText.setSingleLine(false);
+                editText.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
             }
 
-            RxTextView.afterTextChangeEvents(textView)
+            RxTextView.afterTextChangeEvents(editText)
                     .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
                     .skip(1)
                     .filter(textViewAfterTextChangeEvent -> !elementsUpdating) // filter elementUpdates
@@ -291,7 +292,7 @@ public class ViewRenderer {
                     .compose(RxUtil.applyIoAndMainSchedulers())
                     .onErrorReturn(throwable -> false)
                     .subscribe();
-            return textView;
+            return editText;
         } else if (element instanceof Switch) {
             Switch switchElement = (Switch) element;
             android.widget.Switch switchView = new android.widget.Switch(mContext);
@@ -551,9 +552,24 @@ public class ViewRenderer {
                         android.widget.Button buttonView = new android.widget.Button(mContext);
                         buttonView.setTag(R.id.ELEMENT_TAG, element);
                         buttonView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
-                        buttonView.setLayoutParams(getParams(null, isOrientationVertical));
                         buttonView.setVisibility(buttonElement.getDisplayed() != null && !buttonElement.getDisplayed() ? View.GONE : View.VISIBLE);
                         buttonView.setText(buttonElement.getText());
+
+                        LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
+                        if (buttonElement.getAlign() != null) {
+                            switch (buttonElement.getAlign()) {
+                                case CENTER:
+                                    params.gravity = Gravity.CENTER;
+                                    break;
+                                case LEFT:
+                                    params.gravity = Gravity.START;
+                                    break;
+                                case RIGHT:
+                                    params.gravity = Gravity.END;
+                                    break;
+                            }
+                        }
+                        buttonView.setLayoutParams(params);
 
                         if (imageTuple != null) {
                             Image imageElement = (Image) imageTuple.getElement();
@@ -625,6 +641,7 @@ public class ViewRenderer {
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
             editText.setVisibility(dateTimePickerElement.getDisplayed() != null && !dateTimePickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
+            editText.setGravity(Gravity.TOP);
 
             switch (dateTimePickerElement.getType()) {
                 case DATE:
@@ -714,6 +731,7 @@ public class ViewRenderer {
             autoCompleteTextView.setImeOptions(EditorInfo.IME_ACTION_DONE);
             autoCompleteTextView.setSingleLine(true);
             autoCompleteTextView.setVisibility(placesPickerElement.getDisplayed() != null && !placesPickerElement.getDisplayed() ? View.GONE : View.VISIBLE);
+            autoCompleteTextView.setGravity(Gravity.TOP);
 
             AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES).build();
             CityAutocompleteAdapter mAdapter = new CityAutocompleteAdapter(mContext, FaseApp.getGoogleApiHelper().getGoogleApiClient(), typeFilter);
@@ -845,6 +863,7 @@ public class ViewRenderer {
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
             editText.setVisibility(contactPicker.getDisplayed() != null && !contactPicker.getDisplayed() ? View.GONE : View.VISIBLE);
+            editText.setGravity(Gravity.TOP);
 
             if (contactPicker.getContact() != null) {
                 if (!TextUtils.isEmpty(contactPicker.getContact().getDisplayName())) {
@@ -852,12 +871,11 @@ public class ViewRenderer {
                 }
             }
 
-            if (contactPicker.getOnPick() != null) {
-                RxView.clicks(editText)
-                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                        .subscribe(click -> mRendererCallback.requestContact(new RequestContactDataHolder(editText, tuple.getElementId(),
-                                getIdListCopyForItem(tuple, idList), contactPicker.getOnPick().getMethod(), contactPicker.getRequestLocale())));
-            }
+            RxView.clicks(editText)
+                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                    .subscribe(click -> mRendererCallback.requestContact(new RequestContactDataHolder(editText, tuple.getElementId(),
+                            getIdListCopyForItem(tuple, idList), contactPicker.getOnPick() == null ? null : contactPicker.getOnPick().getMethod(),
+                            contactPicker.getRequestLocale(), contactPicker.getOnPick() != null)));
             return editText;
         } else if (element instanceof Menu) {
             Menu menuElement = (Menu) element;

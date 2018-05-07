@@ -1,5 +1,6 @@
 package com.fase.model.element;
 
+import com.fase.model.enums.Align;
 import com.google.gson.annotations.SerializedName;
 
 public class Button extends VisualElement {
@@ -7,6 +8,7 @@ public class Button extends VisualElement {
     @SerializedName("on_click")
     private Function onClick;
     private String text;
+    private Align align;
 
     public Button() {
     }
@@ -25,5 +27,13 @@ public class Button extends VisualElement {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Align getAlign() {
+        return align;
+    }
+
+    public void setAlign(Align align) {
+        this.align = align;
     }
 }

@@ -1,5 +1,6 @@
 package com.fase.model.service;
 
+import com.fase.model.data.VersionInfo;
 import com.fase.model.element.Screen;
 import com.google.gson.annotations.SerializedName;
 
@@ -13,6 +14,8 @@ public class Response {
     private SessionInfo sessionInfo;
     private Screen screen;
     private Resources resources;
+    @SerializedName("version_info")
+    private VersionInfo versionInfo;
 
     public Response() {
     }
@@ -55,5 +58,13 @@ public class Response {
 
     public void setResources(Resources resources) {
         this.resources = resources;
+    }
+
+    public VersionInfo getVersionInfo() {
+        return versionInfo;
+    }
+
+    public void setVersionInfo(VersionInfo versionInfo) {
+        this.versionInfo = versionInfo;
     }
 }

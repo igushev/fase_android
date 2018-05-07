@@ -319,7 +319,9 @@ public class MainActivity extends CommonActivity implements MainActivityView {
                         contact.setDisplayName(name);
                         contact.setPhoneNumber(number);
 
-                        mPresenter.pickContact(mRequestContactDataHolder, contact);
+                        if (mRequestContactDataHolder.isHasOnPick()) {
+                            mPresenter.pickContact(mRequestContactDataHolder, contact);
+                        }
                         if (mRequestContactDataHolder.getContactTextView() != null) {
                             mRequestContactDataHolder.getContactTextView().setText(name);
                         }

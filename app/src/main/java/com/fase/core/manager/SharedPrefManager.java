@@ -15,6 +15,7 @@ public class SharedPrefManager {
 
     private static final String CURRENT_SCREEN_ID = "currentScreenId";
     private static final String CURRENT_SESSION_ID = "currentSessionId";
+    private static final String CURRENT_VERSION = "currentVersion";
 
     private static final String DEVICE_TOKEN = "deviceToken";
 
@@ -23,6 +24,7 @@ public class SharedPrefManager {
     private CachedValue<String> mDeviceToken;
     private CachedValue<String> mCurrentScreenId;
     private CachedValue<String> mCurrentSessionId;
+    private CachedValue<String> mCurrentVersionInfo;
 
     static synchronized SharedPrefManager getInstance() {
         if (mSingleton == null) {
@@ -46,6 +48,7 @@ public class SharedPrefManager {
         mDeviceToken = mCachedValueFactory.getValue(DEVICE_TOKEN, String.class);
         mCurrentScreenId = mCachedValueFactory.getValue(CURRENT_SCREEN_ID, String.class);
         mCurrentSessionId = mCachedValueFactory.getValue(CURRENT_SESSION_ID, String.class);
+        mCurrentVersionInfo = mCachedValueFactory.getValue(CURRENT_VERSION, String.class);
     }
 
     /**
@@ -73,5 +76,13 @@ public class SharedPrefManager {
 
     String getCurrentSessionId() {
         return mCurrentSessionId.getValue();
+    }
+
+    void setVersion(String version) {
+        mCurrentVersionInfo.setValue(version);
+    }
+
+    String getVersion() {
+        return mCurrentVersionInfo.getValue();
     }
 }
