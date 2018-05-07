@@ -195,6 +195,7 @@ public class ViewRenderer {
             for (Tuple itemTuple : frameElement.getIdElementList()) {
                 renderViewElement(frameView, itemTuple, frameElement.getOrientation(), getIdListCopyForItem(tuple, idList));
             }
+            frameView.setBaselineAligned(false);
 
             if (frameElement.getOrientation() != null && frameElement.getOrientation() == Orientation.HORIZONTAL) {
                 frameView.setOrientation(LinearLayout.HORIZONTAL);
