@@ -42,6 +42,10 @@ import timber.log.Timber;
 public class MainActivityPresenter extends BasePresenter<MainActivityView> {
 
     private boolean ignoreUpdates = false;
+    private final GeneralErrorHandler mErrorHandler = new GeneralErrorHandler(getViewState(),
+            () -> ignoreUpdates = false,
+            () -> initScreen(true),
+            () -> initScreen(false));
 
     public void initScreen(boolean restart) {
         if (restart) {
@@ -57,7 +61,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                     getViewState().hideProgress();
                     getViewState().render(response);
                     ignoreUpdates = false;
-                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> initScreen(true)));
+                }, mErrorHandler);
     }
 
     public void elementCallback(List<String> idList, String method, Boolean requestLocale) {
@@ -101,7 +105,7 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                     getViewState().hideProgress();
                     getViewState().render(response);
                     ignoreUpdates = false;
-                }, new GeneralErrorHandler(getViewState(), () -> ignoreUpdates = false, () -> initScreen(true)));
+                }, mErrorHandler);
     }
 
     public Disposable intiElementUpdates() {

@@ -12,7 +12,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$gradleVersion"
+        classpath 'com.android.tools.build:gradle:3.1.2'
         classpath "io.realm:realm-gradle-plugin:$realm"
         classpath "com.google.gms:google-services:$googleServices"
         classpath "io.fabric.tools:gradle:$fabric"

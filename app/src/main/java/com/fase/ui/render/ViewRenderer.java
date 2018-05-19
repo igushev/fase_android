@@ -1,9 +1,7 @@
 package com.fase.ui.render;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
@@ -14,16 +12,10 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -35,6 +27,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.fase.FaseApp;
@@ -73,9 +66,9 @@ import com.fase.ui.adapter.SpinnerAdapter;
 import com.fase.ui.adapter.SpinnerAdapterWithoutEmptyItem;
 import com.fase.ui.fragment.dialog.DateTimePickerResult;
 import com.fase.ui.view.ClickableSpinner;
+import com.fase.ui.view.ProgressWebView;
 import com.fase.ui.viewHolder.MainActivityVH;
 import com.fase.util.DateTimeUtil;
-import com.fase.util.NetworkUtil;
 import com.fase.util.PlaceUtils;
 import com.fase.util.RxUtil;
 import com.google.android.gms.common.api.PendingResult;
@@ -445,7 +438,22 @@ public class ViewRenderer {
             imageView.setTag(R.id.ELEMENT_TAG, element);
             imageView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             imageView.setVisibility(imageElement.getDisplayed() != null && !imageElement.getDisplayed() ? View.GONE : View.VISIBLE);
-            imageView.setLayoutParams(getParams(null, isOrientationVertical));
+            LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
+            if (imageElement.getAlign() != null) {
+                switch (imageElement.getAlign()) {
+                    case CENTER:
+                        params.gravity = Gravity.CENTER;
+                        break;
+                    case LEFT:
+                        params.gravity = Gravity.START;
+                        break;
+                    case RIGHT:
+                        params.gravity = Gravity.END;
+                        break;
+                }
+            }
+            imageView.setLayoutParams(params);
+
             if (!TextUtils.isEmpty(imageElement.getFilename())) {
                 mDataManager.getResourcePath(imageElement.getFilename())
                         .doOnSubscribe(this::addDisposable)
@@ -453,7 +461,8 @@ public class ViewRenderer {
                                     if (!TextUtils.isEmpty(filePath)) {
                                         imageView.post(() -> Glide.with(imageView)
                                                 .load(filePath)
-                                                .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
+                                                .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                                        .diskCacheStrategy(DiskCacheStrategy.NONE))
                                                 .into(imageView));
                                     }
                                 },
@@ -461,10 +470,10 @@ public class ViewRenderer {
             } else if (!TextUtils.isEmpty(imageElement.getUrl())) {
                 imageView.post(() -> Glide.with(imageView)
                         .load(imageElement.getUrl())
-                        .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL))
+                        .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE))
                         .into(imageView));
             }
-
             return imageView;
         } else if (element instanceof Button) {
             Button buttonElement = (Button) element;
@@ -775,72 +784,16 @@ public class ViewRenderer {
             return autoCompleteTextView;
         } else if (element instanceof Web) {
             Web webElement = (Web) element;
-            WebView webView = new WebView(mContext);
+            ProgressWebView webView = new ProgressWebView(mContext, mRendererCallback);
             webView.setTag(R.id.ELEMENT_TAG, element);
             webView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             webView.setVisibility(webElement.getDisplayed() != null && !webElement.getDisplayed() ? View.GONE : View.VISIBLE);
-            LinearLayout.LayoutParams params = getParams(webElement.getSize(), isOrientationVertical);
+            webView.setLayoutParams(getParams(webElement.getSize(), isOrientationVertical));
 
-            webView.setLayoutParams(params);
-            WebSettings webSettings = webView.getSettings();
-            webSettings.setLoadWithOverviewMode(true);
-            webSettings.setUseWideViewPort(true);
-            webSettings.setBuiltInZoomControls(true);
-            webSettings.setDisplayZoomControls(false);
-            webSettings.setDomStorageEnabled(true);
-            webSettings.setJavaScriptEnabled(true);
-
-            // disable scroll on touch
             if (webElement.getScrollable() != null && !webElement.getScrollable()) {
-                webView.setOnTouchListener((v, event) -> (event.getAction() == MotionEvent.ACTION_MOVE));
-                webView.setVerticalScrollBarEnabled(false);
-                webView.setHorizontalScrollBarEnabled(false);
+                webView.disableScrollable();
             }
-
-            webView.setWebChromeClient(new WebChromeClient() {
-                public void onProgressChanged(WebView view, int progress) {
-                    // TODO: progress
-//                    if (progress < 100 && vProgressBar.getVisibility() == ProgressBar.GONE) {
-//                        vProgressBar.setVisibility(ProgressBar.VISIBLE);
-//                    }
-//                    vProgressBar.setProgress(progress);
-//                    if (progress == 100) {
-//                        vProgressBar.setVisibility(ProgressBar.GONE);
-//                    }
-                }
-            });
-
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                @TargetApi(Build.VERSION_CODES.M)
-                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                    super.onReceivedError(view, request, error);
-                    Timber.e("WebView error: %s", error.toString());
-                    mRendererCallback.showError("WebView error: " + error.toString());
-                }
-
-                @SuppressWarnings("deprecation")
-                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                    super.onReceivedError(view, errorCode, description, failingUrl);
-                    Timber.e("WebView error: " + errorCode + " : " + description);
-                    mRendererCallback.showError("WebView error: " + errorCode + " : " + description);
-                }
-
-                @SuppressWarnings("deprecation")
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return true;
-                }
-            });
-
-            if (!TextUtils.isEmpty(webElement.getUrl())) {
-                if (!webElement.getUrl().contains("http")) {
-                    mRendererCallback.showError("Wrong web url format. Url must have http:// or https://");
-                } else {
-                    webView.post(() -> NetworkUtil.checkNetworkWithRetryDialog(mContext, () -> webView.loadUrl(webElement.getUrl())));
-                }
-            }
+            webView.loadUrl(webElement.getUrl());
             return webView;
         } else if (element instanceof Navigation) {
             Navigation navigationElement = (Navigation) element;

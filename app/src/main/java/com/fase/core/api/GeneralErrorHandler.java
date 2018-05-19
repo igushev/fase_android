@@ -22,19 +22,21 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
     private final WeakReference<BaseView> mViewReference;
     private final Runnable mWithAction;
     private final Runnable mRetryAction;
+    private final Runnable mReloadAction;
 
     public GeneralErrorHandler(BaseView view) {
-        this(view, null, null);
+        this(view, null, null, null);
     }
 
     public GeneralErrorHandler(BaseView view, Runnable withAction) {
-        this(view, withAction, null);
+        this(view, withAction, null, null);
     }
 
-    public GeneralErrorHandler(BaseView view, Runnable withAction, Runnable retryAction) {
+    public GeneralErrorHandler(BaseView view, Runnable withAction, Runnable retryAction, Runnable reloadAction) {
         mViewReference = new WeakReference<>(view);
         mWithAction = withAction;
         mRetryAction = retryAction;
+        mReloadAction = reloadAction;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
         hideProgress();
         if (throwable instanceof NoNetworkException) {
             if (mRetryAction != null) {
-                showNoNetworkError(mRetryAction);
+                showNoNetworkError(mReloadAction);
             } else {
                 showError(R.string.message_no_internet);
             }
@@ -97,10 +99,10 @@ public class GeneralErrorHandler implements Consumer<Throwable> {
         }
     }
 
-    private void showNoNetworkError(Runnable retryAction) {
+    private void showNoNetworkError(Runnable reloadAction) {
         BaseView view = mViewReference.get();
         if (view != null) {
-            view.showNoNetworkError(retryAction);
+            view.showNoNetworkError(reloadAction);
         }
     }
 
