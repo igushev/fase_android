@@ -230,6 +230,10 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
                 .doOnSubscribe(disposable -> getCompositeDisposable().add(disposable))
                 .compose(RxUtil.applyIoAndMainSchedulers())
                 .onErrorReturn(throwable -> false)
-                .subscribe(result -> elementCallback(mRequestContactDataHolder.getIdList(), mRequestContactDataHolder.getMethod(), mRequestContactDataHolder.getRequestLocale()));
+                .subscribe(result -> {
+                    if (mRequestContactDataHolder.isHasOnPick()) {
+                        elementCallback(mRequestContactDataHolder.getIdList(), mRequestContactDataHolder.getMethod(), mRequestContactDataHolder.getRequestLocale());
+                    }
+                });
     }
 }
