@@ -684,10 +684,10 @@ public class ViewRenderer {
                                         resultCalendar.setTime(dateFromText);
                                         Calendar calendar = GregorianCalendar.getInstance();
                                         resultCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-                                        date = DateTimeUtil.toUtc(resultCalendar.getTime());
+                                        date = resultCalendar.getTime();
                                         break;
                                     case DATETIME:
-                                        date = DateTimeUtil.toUtc(DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT));
+                                        date = DateTimeUtil.formatDate(dateText, DateTimeUtil.APP_DATE_TIME_FORMAT);
                                         break;
                                 }
                                 return DateTimeUtil.formatDate(date, DateTimeUtil.SERVER_DATE_TIME);
@@ -1103,7 +1103,6 @@ public class ViewRenderer {
                             Date date = null;
                             if (!TextUtils.isEmpty(value)) {
                                 date = DateTimeUtil.formatDate(value, DateTimeUtil.SERVER_DATE_TIME);
-                                date = DateTimeUtil.utcToLocalDate(date);
                             }
                             if (picker.getType() == DateTimePickerType.DATE) {
                                 editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_FORMAT) : value);
