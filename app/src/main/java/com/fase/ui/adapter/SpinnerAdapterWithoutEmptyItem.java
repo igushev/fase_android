@@ -61,11 +61,11 @@ public class SpinnerAdapterWithoutEmptyItem<ID, VAL> {
         return selectedEntry.name;
     }
 
-    public void setSelection(ID id) {
+    public void selectId(ID id) {
         for (Entry<ID, VAL> idvalEntry : mList) {
             if (idvalEntry.id != null && id != null && id == idvalEntry.id) {
                 int spinnerPosition = mAdapter.getPosition(idvalEntry);
-                mSpinner.setSelection(spinnerPosition);
+                mSpinner.setSelection(spinnerPosition, false);
                 break;
             }
         }
@@ -75,10 +75,14 @@ public class SpinnerAdapterWithoutEmptyItem<ID, VAL> {
         for (Entry<ID, VAL> valEntry : mList) {
             if (valEntry.name != null && val != null && val.equals(valEntry.name)) {
                 int spinnerPosition = mAdapter.getPosition(valEntry);
-                mSpinner.setSelection(spinnerPosition);
+                mSpinner.setSelection(spinnerPosition, false);
                 break;
             }
         }
+    }
+
+    public void selectPosition(int spinnerPosition) {
+        mSpinner.setSelection(spinnerPosition, false);
     }
 
     private static class ListAdapter<ID, VAL> extends ArrayAdapter<Entry<ID, VAL>> {

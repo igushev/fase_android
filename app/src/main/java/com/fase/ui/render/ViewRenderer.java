@@ -364,6 +364,8 @@ public class ViewRenderer {
                 entrySpinnerAdapter.setList(itemsList);
                 if (!TextUtils.isEmpty(selectElement.getValue())) {
                     entrySpinnerAdapter.selectValue(selectElement.getValue());
+                } else {
+                    entrySpinnerAdapter.selectPosition(0);  // Select manually otherwise a listener will be triggered.
                 }
             }
 
