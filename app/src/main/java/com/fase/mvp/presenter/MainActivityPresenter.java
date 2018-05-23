@@ -7,6 +7,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
 import com.arellomobile.mvp.InjectViewState;
+import com.bumptech.glide.Glide;
 import com.fase.BuildConfig;
 import com.fase.FaseApp;
 import com.fase.base.BasePresenter;
@@ -184,7 +185,15 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
     private SingleSource<? extends Response> processResources(Response response) {
         return Single.just(response)
                 .flatMap(result -> {
-                    if (result.getResources() != null && result.getResources().isResetResources()) {
+                    if ((result.getResources() != null && result.getResources().isResetResources())
+                            || (result.getVersionInfo() != null
+                            && !TextUtils.isEmpty(result.getVersionInfo().getVersion())
+                            && !result.getVersionInfo().getVersion().equals(mDataManager.getVersion()))) {
+                        new Thread(() -> {
+                            Glide.get(FaseApp.getApplication()).clearDiskCache();
+                            Glide.get(FaseApp.getApplication()).clearMemory();
+                        });
+
                         return mDataManager.deleteResources()
                                 .flatMap(aBoolean -> Single.just(response));
                     } else {

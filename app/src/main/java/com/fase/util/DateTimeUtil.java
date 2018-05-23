@@ -20,11 +20,11 @@ import timber.log.Timber;
 
 public class DateTimeUtil {
 
-    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String APP_DATE_TIME_FORMAT = "yyyy-MM-dd hh:mm:ss a";
     public static final String APP_DATE_FORMAT = "yyyy-MM-dd";
-    public static final String APP_TIME_FORMAT = "HH:mm";
+    public static final String APP_TIME_FORMAT = "hh:mm a";
     public static final String APP_12H_TIME_FORMAT = "hh:mm a";
-    public static final String SERVER_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String SERVER_DATE_TIME = "yyyy-MM-dd hh:mm:ss a";
 
     private static DateTimeFormatter mISOWithoutMillisOrOffsetWithTimezone = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
     private static DateTimeFormatter mISOWithoutMillisOrOffset = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");

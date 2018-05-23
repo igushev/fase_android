@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="separator">#999999</color>
     <color name="recycler_divider">#999999</color>
     <color name="border">#999999</color>
 

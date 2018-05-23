@@ -2,7 +2,6 @@ package com.fase.core.serializers;
 
 import android.text.TextUtils;
 
-import com.fase.util.DateTimeUtil;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -29,6 +28,12 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
     private static DateTimeFormatter dateOnlyFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static DateTimeFormatter dateOnlySlashedFormat = DateTimeFormat.forPattern("dd/MM/yyyy");
 
+    private String predefinedPatter;
+
+    public DateTimeDeserializer(String predefinedPatter) {
+        this.predefinedPatter = predefinedPatter;
+    }
+
     @Override
     public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         final String date = json.getAsJsonPrimitive().getAsString();
@@ -36,46 +41,51 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
         if (TextUtils.isEmpty(date)) {
             return null;
         }
+
+        if (TextUtils.isEmpty(predefinedPatter)) {
+            DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(predefinedPatter);
+            return dateTimeFormatter.parseDateTime(date).toDate();
+        }
         // try parse via stock DateFormat class
         try {
             DateFormat dateFormat = DateFormat.getInstance();
-            return DateTimeUtil.utcToLocalDate(dateFormat.parse(date));
+            return dateFormat.parse(date);
         } catch (ParseException ignored) {
         }
         // try parse yyyy-mm-dd format
         try {
             DateTime dateTime = dateOnlyFormat.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse yyyy-mm-dd hh:mm:ss format
         try {
             DateTime dateTime = dateAndTimeFormat.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse yyyy-mm-dd hh:mm format
         try {
             DateTime dateTime = dateAndTimeFormat1.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse dd/MM/yyyy format
         try {
             DateTime dateTime = dateOnlySlashedFormat.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse ISO date
         try {
             DateTime dateTime = ISOWithoutMillisOrOffset.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse yyyy-MM-dd'T'HH:mm:ssZ format
         try {
             DateTime dateTime = ISOWithoutMillisOrOffsetWithTimezone.parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception ignored) {
         }
         // try parse ISO date
@@ -83,7 +93,7 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
             DateTime dateTime = ISODateTimeFormat.dateTimeParser()
                     .withOffsetParsed()
                     .parseDateTime(date);
-            return DateTimeUtil.utcToLocalDate(dateTime.toDate());
+            return dateTime.toDate();
         } catch (Exception e) {
             Timber.e("Error parsing date");
         }

@@ -36,6 +36,7 @@ import com.fase.core.manager.DataManager;
 import com.fase.model.Entry;
 import com.fase.model.PrevStepButtonDataHolder;
 import com.fase.model.RequestContactDataHolder;
+import com.fase.model.data.Contact;
 import com.fase.model.element.Alert;
 import com.fase.model.element.Button;
 import com.fase.model.element.ContactPicker;
@@ -205,7 +206,6 @@ public class ViewRenderer {
             if (frameElement.getBorder() != null && frameElement.getBorder()) {
                 frameView.setBackgroundResource(R.drawable.bg_shape_gray_border);
             }
-
             return frameView;
         } else if (element instanceof Label) {
             Label labelElement = (Label) element;
@@ -464,6 +464,7 @@ public class ViewRenderer {
                                         imageView.post(() -> Glide.with(imageView)
                                                 .load(filePath)
                                                 .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                                        .skipMemoryCache(true)
                                                         .diskCacheStrategy(DiskCacheStrategy.NONE))
                                                 .into(imageView));
                                     }
@@ -473,6 +474,7 @@ public class ViewRenderer {
                 imageView.post(() -> Glide.with(imageView)
                         .load(imageElement.getUrl())
                         .apply(new RequestOptions().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                                .skipMemoryCache(true)
                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
                         .into(imageView));
             }
@@ -888,11 +890,13 @@ public class ViewRenderer {
         } else if (element instanceof Separator) {
             Separator separatorElement = (Separator) element;
             View separatorView = new View(mContext);
+            separatorView.setBackgroundResource(R.color.separator);
             LinearLayout.LayoutParams params = getParams(null, isOrientationVertical);
+            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, FaseApp.getRes().getDisplayMetrics());
             if (isOrientationVertical) {
-                params.height = 1;
+                params.height = size;
             } else {
-                params.width = 1;
+                params.width = size;
             }
             separatorView.setLayoutParams(params);
             separatorView.setVisibility(separatorElement.getDisplayed() != null && !separatorElement.getDisplayed() ? View.GONE : View.VISIBLE);
@@ -1112,6 +1116,13 @@ public class ViewRenderer {
                                 editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_TIME_FORMAT) : value);
                             } else {
                                 editText.setText(date != null ? DateTimeUtil.formatDate(date, DateTimeUtil.APP_DATE_TIME_FORMAT) : value);
+                            }
+                        } else if (tag instanceof ContactPicker) {
+                            Contact contact = mGson.fromJson(value, Contact.class);
+                            if (contact != null) {
+                                editText.setText(contact.getDisplayName());
+                            } else {
+                                editText.setText(value);
                             }
                         } else {
                             editText.setText(value);

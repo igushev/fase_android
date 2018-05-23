@@ -60,7 +60,7 @@ public class TimePickDialog extends BaseDialogFragment implements android.app.Ti
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        Dialog picker = new TimePickerDialog(getActivity(), this, hour, minute, true);
+        Dialog picker = new TimePickerDialog(getActivity(), this, hour, minute, false);
         picker.setTitle(getString(R.string.choose_time_title));
 
         return picker;

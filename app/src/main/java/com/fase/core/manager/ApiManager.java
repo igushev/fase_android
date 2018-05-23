@@ -69,7 +69,7 @@ class ApiManager {
         GsonBuilder builder = new GsonBuilder();
 
         // deserialize
-        builder.registerTypeAdapter(Date.class, new DateTimeDeserializer());
+        builder.registerTypeAdapter(Date.class, new DateTimeDeserializer(DateTimeUtil.SERVER_DATE_TIME));
         builder.registerTypeAdapter(Tuple.class, new TupleDeserializer());
 
         // serialize
