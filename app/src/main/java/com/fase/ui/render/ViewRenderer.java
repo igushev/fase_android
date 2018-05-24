@@ -478,6 +478,12 @@ public class ViewRenderer {
                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
                         .into(imageView));
             }
+
+            if (imageElement.getOnClick() != null) {
+                RxView.clicks(imageView)
+                        .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                        .subscribe(click -> mRendererCallback.onFunctionCall(getIdListCopyForItem(tuple, idList), imageElement.getOnClick().getMethod(), imageElement.getRequestLocale()));
+            }
             return imageView;
         } else if (element instanceof Button) {
             Button buttonElement = (Button) element;

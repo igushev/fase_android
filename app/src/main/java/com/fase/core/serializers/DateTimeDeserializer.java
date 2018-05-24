@@ -27,6 +27,7 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
     private static DateTimeFormatter dateAndTimeFormat1 = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
     private static DateTimeFormatter dateOnlyFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
     private static DateTimeFormatter dateOnlySlashedFormat = DateTimeFormat.forPattern("dd/MM/yyyy");
+    private static DateTimeFormatter dateTimeAmPmFormat = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm:ss a");
 
     private String predefinedPatter;
 
@@ -45,6 +46,12 @@ public class DateTimeDeserializer implements JsonDeserializer<Date> {
         if (TextUtils.isEmpty(predefinedPatter)) {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(predefinedPatter);
             return dateTimeFormatter.parseDateTime(date).toDate();
+        }
+        // try parse yyyy-MM-dd hh:mm:ss a format
+        try {
+            DateTime dateTime = dateTimeAmPmFormat.parseDateTime(date);
+            return dateTime.toDate();
+        } catch (Exception ignored) {
         }
         // try parse via stock DateFormat class
         try {
