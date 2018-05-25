@@ -24,7 +24,7 @@ public class DateTimeUtil {
     public static final String APP_DATE_FORMAT = "yyyy-MM-dd";
     public static final String APP_TIME_FORMAT = "hh:mm a";
     public static final String APP_12H_TIME_FORMAT = "hh:mm a";
-    public static final String SERVER_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
+    public static final String SERVER_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
 
     private static DateTimeFormatter mISOWithoutMillisOrOffsetWithTimezone = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
     private static DateTimeFormatter mISOWithoutMillisOrOffset = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss");
