@@ -376,12 +376,10 @@ public class ViewRenderer {
                         if (selectView.getAdapter().getCount() != itemsList.size()) {
                             position -= 1;  // -1 because have empty element
                         }
-                        if (position >= 0) {
-                            mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), itemsList.get(position).name)
-                                    .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
-                                    .compose(RxUtil.applySingleIoAndMainSchedulers())
-                                    .subscribe();
-                        }
+                        mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList), position >= 0 ? itemsList.get(position).name : "")
+                                .doOnSubscribe(disposable -> mCompositeDisposable.add(disposable))
+                                .compose(RxUtil.applySingleIoAndMainSchedulers())
+                                .subscribe();
                     }
                 }
 
@@ -1018,7 +1016,7 @@ public class ViewRenderer {
             Screen screen = response.getScreen();
             if (screen.getOnRefresh() != null) {
                 mViewHolder.vSwipeRefreshLayout.setEnabled(true);
-                mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> mRendererCallback.onFunctionCall(null, screen.getOnRefresh().getMethod(), screen.getRequestLocale()));
+                mViewHolder.vSwipeRefreshLayout.setOnRefreshListener(() -> mRendererCallback.onFunctionCall(new ArrayList<>(), screen.getOnRefresh().getMethod(), screen.getRequestLocale()));
             }
             if (!TextUtils.isEmpty(screen.getTitle())) {
                 mRendererCallback.setScreenTitle(screen.getTitle());
@@ -1148,10 +1146,14 @@ public class ViewRenderer {
                     } else if (resultView instanceof ClickableSpinner) {
                         ClickableSpinner spinner = (ClickableSpinner) resultView;
                         android.widget.SpinnerAdapter adapter = spinner.getAdapter();
-                        for (int j = 0; j < adapter.getCount(); j++) {
-                            if (adapter.getItem(j) instanceof Entry) {
-                                if (((Entry) adapter.getItem(j)).name.equals(value)) {
-                                    spinner.setSelection(j);
+                        if (TextUtils.isEmpty(value) && adapter.getItem(0) instanceof Entry && ((Entry) adapter.getItem(0)).id == null) {
+                            spinner.setSelection(0);
+                        } else {
+                            for (int j = 0; j < adapter.getCount(); j++) {
+                                if (adapter.getItem(j) instanceof Entry) {
+                                    if (((Entry) adapter.getItem(j)).name.equals(value)) {
+                                        spinner.setSelection(j);
+                                    }
                                 }
                             }
                         }
