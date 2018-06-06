@@ -28,7 +28,7 @@ public interface FaseApi {
     Single<Status> sendServiceCommand(@Body Command command);
 
     @POST("/getscreen")
-    Single<Response> getScreen(@Header("session-id") String sessionId, @Body Device device);
+    Single<Response> getScreen(@Header("session-id") String sessionId, @Header("version") String version, @Body Device device);
 
     @POST("/screenupdate")
     Single<Response> screenUpdate(@Header("session-id") String sessionId, @Header("screen-id") String screenId,
