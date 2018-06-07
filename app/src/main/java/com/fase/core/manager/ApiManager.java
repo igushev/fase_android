@@ -114,8 +114,8 @@ class ApiManager {
         return mApi.sendServiceCommand(command);
     }
 
-    Single<Response> getScreen(String sessionId, Device device) {
-        return mApi.getScreen(sessionId, device);
+    Single<Response> getScreen(String sessionId, String version, Device device) {
+        return mApi.getScreen(sessionId, version, device);
     }
 
     Single<Response> screenUpdate(String sessionId, String screenId, String version, ScreenUpdate screenUpdate) {

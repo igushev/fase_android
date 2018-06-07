@@ -105,7 +105,7 @@ public class DataManager {
     }
 
     public Single<Response> getScreen() {
-        return mApiManager.getScreen(getCurrentSessionId(), getDevice());
+        return mApiManager.getScreen(getCurrentSessionId(), getVersion(), getDevice());
     }
 
     public Single<Response> screenUpdate(ScreenUpdate screenUpdate) {
