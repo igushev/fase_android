@@ -7,7 +7,7 @@
     <string name="error_occurred">Error occurred</string>
     <string name="network_connection_problem">Network connection problem</string>
     <string name="server_internal_error">Server Internal Error</string>
-    <string name="message_no_internet">No internet connection.\nPlease, check your internet connection and try again</string>
+    <string name="message_no_internet">No internet connection</string>
     <string name="retry">Retry</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
