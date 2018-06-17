@@ -56,8 +56,8 @@ public class FaseNotificationService extends FirebaseMessagingService {
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         notificationBuilder
-                .setSmallIcon(R.mipmap.ic_launcher)// FIXME:
-                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher))// FIXME:
+                .setSmallIcon(R.mipmap.ic_launcher)  // FIXME: Put a contour icon here.
+                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher))  // FIXME: Put a contour icon here.
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
