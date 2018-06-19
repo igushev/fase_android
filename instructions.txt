@@ -1,11 +1,17 @@
+Rename here:
+<user visible appname>
+<upper case appname with no spaces>
+<lower case appname with underscore>
+<lower case appname one word>
+
 1.1 Make clone or pull of repository
 1.2 Delete .idea, app/build
 
 2.1 Go to /home/igushev/KarmaCounter/fase_android/app/src/main/AndroidManifest.xml
-2.2 Refactor rename package in manifest->package from "fase" to <lower case appname>
+2.2 Refactor rename package in manifest->package from "fase" to <lower case appname with underscore>
 
 3.1 Go to /home/igushev/KarmaCounter/fase_android/app/build.gradle
-3.2 Rename android->defaultConfig->applicationId from "fase" to <lower case appname>
+3.2 Rename android->defaultConfig->applicationId from "fase" to <lower case appname with underscore>
 3.3 Update server URL in android->buildTypes->debug->API_HOST and android->buildTypes->release->API_HOST
 
 2.1 Got to /home/igushev/KarmaCounter/fase_android/app/src/main/res/values/strings.xml
@@ -17,9 +23,9 @@
 
 6.1 Delete existing key /home/igushev/KarmaCounter/fase_android/keystore/debug.keystore
 6.2 Create debug key:
-keytool -genkey -keystore debug.keystore -storepass <lower case appname> -keypass <lower case appname> -alias <lower case appname>debug -dname "CN=Yulia Igusheva O=Home C=US" -validity 10000 -keysize 1024
+keytool -genkey -keystore debug.keystore -storepass <lower case appname one word> -keypass <lower case appname one word> -alias <lower case appname one word>debug -dname "CN=Yulia Igusheva O=Home C=US" -validity 10000 -keysize 1024
 6.3 Generate SHA1:
-keytool -list -v -keystore debug.keystore -storepass <lower case appname>
+keytool -list -v -keystore debug.keystore -storepass <lower case appname one word>
 6.4 Go to /home/igushev/KarmaCounter/fase_android/app/build.gradle
 6.5 Update proper signingConfigs->debug
 
@@ -30,10 +36,10 @@ keytool -list -v -keystore debug.keystore -storepass <lower case appname>
 
 8.1 Go Build->Generate Signed APK
 8.2 Create "Create new..."
-8.3 Name release.jks, Password <lower case appname>, alias <lower case appname>release
+8.3 Name release.jks, Password <lower case appname one word>, alias <lower case appname one word>release
 8.4 Update proper signingConfigs->release
 8.5 Generate SHA1:
-keytool -list -v -keystore release.jks -storepass <lower case appname>
+keytool -list -v -keystore release.jks -storepass <lower case appname one word>
 8.6 Add SHA1 comment to signingConfigs->release
 8.7 Add SHA1 to Firebase Console project
 
