@@ -1,0 +1,5 @@
+1. In AndroidManifest.xml change android:theme="@style/AppTheme" to android:theme="@style/SplashTheme"
+2. In drawable/splash_background.xml change <solid android:color="@android:color/white"/> or uncomment <bitmap> and add image.
+3. In MainActivity in onCreate() after mPresenter.initScreen(false); add
+getWindow().setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(MainActivity.this, android.R.color.white)));
+
