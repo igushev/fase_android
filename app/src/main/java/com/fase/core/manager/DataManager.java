@@ -1,5 +1,7 @@
 package com.fase.core.manager;
 
+import android.provider.Settings;
+
 import com.fase.BuildConfig;
 import com.fase.FaseApp;
 import com.fase.model.UpdateValue;
@@ -46,8 +48,11 @@ public class DataManager {
 
     public Device getDevice() {
         Device device = new Device();
-        device.setDeviceToken(getDeviceToken());
         device.setDeviceType(BuildConfig.DEVICE_TYPE);
+        device.setDeviceId(Settings.Secure.getString(
+                FaseApp.getApplication().getApplicationContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID));
+        device.setDeviceToken(getDeviceToken());
         float density = FaseApp.getRes().getDisplayMetrics().density;
         density = (float) (Math.floor(density * 4) / 4f);
         device.setPixelDensity(density);
@@ -109,11 +114,13 @@ public class DataManager {
     }
 
     public Single<Response> screenUpdate(ScreenUpdate screenUpdate) {
-        return mApiManager.screenUpdate(getCurrentSessionId(), getCurrentScreenId(), getVersion(), screenUpdate);
+        return mApiManager.screenUpdate(
+                getCurrentSessionId(), getCurrentScreenId(), getVersion(), screenUpdate);
     }
 
     public Single<Response> elementCallback(ElementCallback elementCallback) {
-        return mApiManager.elementCallback(getCurrentSessionId(), getCurrentScreenId(), getVersion(), elementCallback);
+        return mApiManager.elementCallback(
+                getCurrentSessionId(), getCurrentScreenId(), getVersion(), elementCallback);
     }
 
     public Single<ResponseBody> getResource(String fileName) {
