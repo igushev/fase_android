@@ -220,14 +220,12 @@ public class MainActivityPresenter extends BasePresenter<MainActivityView> {
     }
 
     private Locale getLocale() {
-        TelephonyManager telephonyManager = (TelephonyManager) FaseApp.getApplication().getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-        String iso = null;
-        if (telephonyManager != null) {
-            iso = telephonyManager.getNetworkCountryIso();
-        }
-
+        String iso = FaseApp.getApplication().getResources().getConfiguration().locale.getCountry();
         if (iso == null) {
-            iso = FaseApp.getApplication().getResources().getConfiguration().locale.getCountry();
+            TelephonyManager telephonyManager = (TelephonyManager) FaseApp.getApplication().getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+            if (telephonyManager != null) {
+                iso = telephonyManager.getNetworkCountryIso();
+            }
         }
 
         return new Locale(iso.toUpperCase());
