@@ -13,11 +13,10 @@ public class SharedPrefManager {
 
     private static volatile SharedPrefManager mSingleton;
 
+    private static final String DEVICE_TOKEN = "deviceToken";
     private static final String CURRENT_SCREEN_ID = "currentScreenId";
     private static final String CURRENT_SESSION_ID = "currentSessionId";
     private static final String CURRENT_VERSION = "currentVersion";
-
-    private static final String DEVICE_TOKEN = "deviceToken";
 
     private CachedValueFactory mCachedValueFactory;
     private SecurePreferences mSecurePreferences;
@@ -54,8 +53,8 @@ public class SharedPrefManager {
     /**
      * Methods
      */
-    void setDeviceToken(String deviceId) {
-        mDeviceToken.setValue(deviceId);
+    void setDeviceToken(String deviceToken) {
+        mDeviceToken.setValue(deviceToken);
     }
 
     String getDeviceToken() {
