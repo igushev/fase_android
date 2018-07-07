@@ -7,26 +7,26 @@ Rename here:
 1.1 Make clone or pull of repository
 1.2 Delete .idea, app/build
 
-2.1 Go to /home/igushev/KarmaCounter/fase_android/app/src/main/AndroidManifest.xml
+2.1 Go to fase_android/app/src/main/AndroidManifest.xml
 2.2 Refactor rename package in manifest->package from "fase" to <lower case appname with underscore>
 
-3.1 Go to /home/igushev/KarmaCounter/fase_android/app/build.gradle
+3.1 Go to fase_android/app/build.gradle
 3.2 Rename android->defaultConfig->applicationId from "fase" to <lower case appname with underscore>
 3.3 Update server URL in android->buildTypes->debug->API_HOST and android->buildTypes->release->API_HOST
 
-2.1 Got to /home/igushev/KarmaCounter/fase_android/app/src/main/res/values/strings.xml
+2.1 Got to fase_android/app/src/main/res/values/strings.xml
 2.2 Rename app_name from "Fase" to <user visible appname>
 
 5.1 app->new->Image Asset
 5.2 Choose Icon Type: Launcher Icon (Legacy Only), Asset Type: Image, Shape: None
 5.3 Same but name ic_launcher_round
 
-6.1 Delete existing key /home/igushev/KarmaCounter/fase_android/keystore/debug.keystore
+6.1 Delete existing key fase_android/keystore/debug.keystore
 6.2 Create debug key:
 keytool -genkey -keystore debug.keystore -storepass <lower case appname one word> -keypass <lower case appname one word> -alias <lower case appname one word>debug -dname "CN=Yulia Igusheva O=Home C=US" -validity 10000 -keysize 1024
 6.3 Generate SHA1:
 keytool -list -v -keystore debug.keystore -storepass <lower case appname one word>
-6.4 Go to /home/igushev/KarmaCounter/fase_android/app/build.gradle
+6.4 Go to fase_android/app/build.gradle
 6.5 Update proper signingConfigs->debug
 
 7.1 Go to Firebase Console
@@ -48,7 +48,7 @@ keytool -list -v -keystore release.jks -storepass <lower case appname one word>
 10.1 Go to Google Cloud Console
 10.2 Enable Places SDK for Android
 10.3 Go to APIs & Services->Credentials and copy Android Key
-10.4 Go to /home/igushev/KarmaCounter/fase_android/app/build.gradle
+10.4 Go to fase_android/app/build.gradle
 10.5 Paste Android Key into android->buildTypes->all->google_maps_api_key
 
 11.1 Go to Firebase Console-><user visible appname>->Settings->Cloud Messaging
