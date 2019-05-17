@@ -55,14 +55,14 @@ android {
         }
 
         debug {
-            buildConfigField 'String', 'API_HOST', '"http://fase-test-fase-env-test1.us-west-2.elasticbeanstalk.com"'
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com/"'
 
             debuggable true
             signingConfig signingConfigs.debug
         }
 
         release {
-            buildConfigField 'String', 'API_HOST', '"http://fase-test-fase-env-prod.us-west-2.elasticbeanstalk.com"'
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-prod.us-west-2.elasticbeanstalk.com/"'
 
             debuggable false
             minifyEnabled false
