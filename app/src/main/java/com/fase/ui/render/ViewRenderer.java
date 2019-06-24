@@ -1,6 +1,7 @@
 package com.fase.ui.render;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.support.annotation.DrawableRes;
@@ -214,7 +215,16 @@ public class ViewRenderer {
             labelView.setTag(R.id.ELEMENT_ID_TAG, tuple.getElementId());
             labelView.setText(labelElement.getText());
             labelView.setLayoutParams(getParams(labelElement.getSize(), isOrientationVertical));
-            labelView.setTextSize(labelElement.getFont() == null ? 1 : labelElement.getFont() * 15); // 15 default size
+            if (labelElement.getFont() != null) {
+                labelView.setTextSize(labelElement.getFont().getSize() * 15); // 15 default size
+                if (labelElement.getFont().getBold() && !labelElement.getFont().getItalic()) {
+                    labelView.setTypeface(labelView.getTypeface(), Typeface.BOLD);
+                } else if (!labelElement.getFont().getBold() && labelElement.getFont().getItalic()) {
+                    labelView.setTypeface(labelView.getTypeface(), Typeface.ITALIC);
+                } else if (labelElement.getFont().getBold() && labelElement.getFont().getItalic()) {
+                    labelView.setTypeface(labelView.getTypeface(), Typeface.BOLD_ITALIC);
+                }
+            }
             labelView.setVisibility(labelElement.getDisplayed() != null && !labelElement.getDisplayed() ? View.GONE : View.VISIBLE);
 
             if (labelElement.getAlign() != null) {

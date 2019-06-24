@@ -9,7 +9,7 @@ public class Label extends VisualElement {
     @SerializedName("on_click")
     private Function onClick;
     private Align align;
-    private Float font;
+    private Font font;
     private Size size;
     private String text;
 
@@ -32,11 +32,11 @@ public class Label extends VisualElement {
         this.align = align;
     }
 
-    public Float getFont() {
+    public Font getFont() {
         return font;
     }
 
-    public void setFont(Float font) {
+    public void setFont(Font font) {
         this.font = font;
     }
 

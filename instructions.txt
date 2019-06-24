@@ -1,0 +1,63 @@
+Rename here:
+<user visible appname>
+<upper case appname with no spaces>
+<lower case appname with underscore>
+<lower case appname one word>
+
+1.1 Make clone or pull of repository
+1.2 Delete .idea, app/build
+
+2.1 Go to fase_android/app/src/main/AndroidManifest.xml
+2.2 Refactor rename package in manifest->package from "fase" to <lower case appname with underscore>
+
+3.1 Go to fase_android/app/build.gradle
+3.2 Rename android->defaultConfig->applicationId from "fase" to <lower case appname with underscore>
+3.3 Update server URL in android->buildTypes->debug->API_HOST and android->buildTypes->release->API_HOST
+
+2.1 Got to fase_android/app/src/main/res/values/strings.xml
+2.2 Rename app_name from "Fase" to <user visible appname>
+
+5.1 app->new->Image Asset
+5.2 Choose Icon Type: Launcher Icon (Legacy Only), Asset Type: Image, Shape: None
+5.3 Same but name ic_launcher_round
+
+6.1 Delete existing key fase_android/keystore/debug.keystore
+6.2 Create debug key:
+keytool -genkey -keystore debug.keystore -storepass <lower case appname one word> -keypass <lower case appname one word> -alias <lower case appname one word>debug -dname "CN=Yulia Igusheva O=Home C=US" -validity 10000 -keysize 1024
+6.3 Generate SHA1:
+keytool -list -v -keystore debug.keystore -storepass <lower case appname one word>
+6.4 Go to fase_android/app/build.gradle
+6.5 Update proper signingConfigs->debug
+
+7.1 Go to Firebase Console
+7.2 Create or choose project with name <user visible appname>
+7.3 (Optional) Download and replace app/google-services.json
+7.4 Confirm/Add Debug SHA1
+
+8.1 Go Build->Generate Signed APK
+8.2 Create "Create new..."
+8.3 Name release.jks, Password <lower case appname one word>, alias <lower case appname one word>release
+8.4 Update proper signingConfigs->release
+8.5 Generate SHA1:
+keytool -list -v -keystore release.jks -storepass <lower case appname one word>
+8.6 Add SHA1 comment to signingConfigs->release
+8.7 Add SHA1 to Firebase Console project
+
+9 Download and replace app/google-services.json
+
+10.1 Go to Google Cloud Console
+10.2 Enable Places SDK for Android
+10.3 Go to APIs & Services->Credentials and copy Android Key
+10.4 Go to fase_android/app/build.gradle
+10.5 Paste Android Key into android->buildTypes->all->google_maps_api_key
+
+11.1 Go to Firebase Console-><user visible appname>->Settings->Cloud Messaging
+11.2 Copy Server key
+11.3 Paste into Server configuration
+
+12.1 Click "Sync Now" in upper right corner of Android Studio
+12.2 Click Build->Clean Project
+12.3 (Optional) Delete .idea directory
+12.4 Click Build->Build APK(s)
+12.5 Click Build->Generate Signed APK
+

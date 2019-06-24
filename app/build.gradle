@@ -34,14 +34,10 @@ android {
         }
 
         release {
-            storeFile file("../keystore/debug.keystore")
+            storeFile file("../keystore/release.jks")
             storePassword "faseapp2018"
-            keyAlias "faseappdebug"
+            keyAlias "faseapprelease"
             keyPassword "faseapp2018"
-//            storeFile file("../keystore/release.jks")
-//            storePassword "pass"
-//            keyAlias "fase"
-//            keyPassword "pass"
         }
     }
 
@@ -52,19 +48,22 @@ android {
             buildConfigField 'Integer', 'CONNECTION_TIMEOUT', '30'
             buildConfigField 'String', 'SHARED_PREFS_NAME', '"faseSharedPrefs"'
             buildConfigField 'String', 'SECURE_SHARED_PREFS_KEY', '"59f1060c-8fa1-4967-9566-98e713aaa429"'
-            buildConfigField 'String', 'API_HOST', '"http://fase-test-fase-env-test1.us-west-2.elasticbeanstalk.com"'
             buildConfigField 'String', 'DEVICE_TYPE', '"Android"'
             buildConfigField 'Integer', 'ELEMENT_UPDATE_TIME', '2'
 
-            resValue 'string', 'google_maps_api_key', '"AIzaSyB7AyZJ52G_twmYqfJcyxSzQEtSrhjvuOo"'
+            resValue 'string', 'google_maps_api_key', '""'
         }
 
         debug {
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com/"'
+
             debuggable true
             signingConfig signingConfigs.debug
         }
 
         release {
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-prod.us-west-2.elasticbeanstalk.com/"'
+
             debuggable false
             minifyEnabled false
             useProguard false
