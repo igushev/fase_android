@@ -1,7 +1,7 @@
 buildscript {
-    ext.gradleVersion = '3.1.1'
+    ext.gradleVersion = '3.1.3'
     ext.realm = '5.1.0'
-    ext.googleServices = '3.2.0'
+    ext.googleServices = '3.3.0'
     ext.fabric = '1.25.2'
 
     repositories {
@@ -12,7 +12,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath "io.realm:realm-gradle-plugin:$realm"
         classpath "com.google.gms:google-services:$googleServices"
         classpath "io.fabric.tools:gradle:$fabric"
@@ -22,7 +22,6 @@ buildscript {
 allprojects {
     repositories {
         google()
-        maven { url "https://maven.google.com" }
         jcenter()
         mavenCentral()
     }
