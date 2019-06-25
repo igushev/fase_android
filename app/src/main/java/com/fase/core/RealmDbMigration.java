@@ -1,7 +1,6 @@
 package com.fase.core;
 
-import android.support.annotation.NonNull;
-
+import androidx.annotation.NonNull;
 import io.realm.DynamicRealm;
 import io.realm.RealmMigration;
 import timber.log.Timber;

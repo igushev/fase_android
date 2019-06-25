@@ -3,7 +3,6 @@ package com.fase.ui.adapter;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -15,6 +14,8 @@ import com.fase.model.Entry;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 public class SpinnerAdapter<ID, VAL> {
 

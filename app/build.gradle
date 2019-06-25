@@ -3,13 +3,12 @@ apply plugin: 'realm-android'
 apply plugin: 'io.fabric'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 28
 
     defaultConfig {
         applicationId "com.fase"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "0.0.1"
 
@@ -51,11 +50,11 @@ android {
             buildConfigField 'String', 'DEVICE_TYPE', '"Android"'
             buildConfigField 'Integer', 'ELEMENT_UPDATE_TIME', '2'
 
-            resValue 'string', 'google_maps_api_key', '""'
+            resValue 'string', 'google_maps_api_key', '"AIzaSyAKgD90oDzfedVS5fH13mbB35RCHdUJ8Y0"' // TODO clear this value
         }
 
         debug {
-            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-test1.us-west-2.elasticbeanstalk.com/"'
+            buildConfigField 'String', 'API_HOST', '"http://fase-test-fase-env-test1.us-west-2.elasticbeanstalk.com/"' // TODO revert this
 
             debuggable true
             signingConfig signingConfigs.debug
@@ -98,28 +97,29 @@ android {
 }
 
 ext {
-    supportLib = "27.1.1"
-    timber = "4.6.1"
-    joda = "2.9.9.1"
-    moxy = "1.5.3"
-    butterknife = "8.8.1"
-    rxJava = "2.1.7"
-    rxAndroid = "2.0.2"
-    rxBinding = "2.1.1"
+    appCompatLib = "1.1.0-beta01"
+    materialLib = "1.1.0-alpha07"
+    timber = "4.7.1"
+    joda = "2.10.1.2"
+    moxyX = "1.7.0"
+    butterknife = "10.1.0"
+    rxJava = "2.2.10"
+    rxAndroid = "2.1.1"
+    rxBinding = "3.0.0-alpha2"
     rxPermisiions = "0.9.5"
-    retrofitLibs = "2.3.0"
-    okhttpLibs = "3.9.1"
-    glide = "4.6.1"
-    rxJavaDebug = "1.2.2"
-    playServices = "15.0.1"
-    firebaseMessaging = "17.0.0"
-    firebaseCore = "16.0.1"
-    crashlyticsVer = "2.9.4"
+    retrofitLibs = "2.6.0"
+    okhttpLibs = "3.14.2"
+    glide = "4.9.0"
+    rxJavaDebug = "1.4.0"
+    playServices = "17.0.0"
+    firebaseMessaging = "19.0.1"
+    firebaseCore = "17.0.0"
+    crashlyticsVer = "2.10.1"
 }
 
 dependencies {
-    implementation "com.android.support:appcompat-v7:$supportLib"
-    implementation "com.android.support:design:$supportLib"
+    implementation "androidx.appcompat:appcompat:$appCompatLib"
+    implementation "com.google.android.material:material:$materialLib"
 
     implementation "com.jakewharton.timber:timber:$timber"
     implementation "net.danlew:android.joda:$joda"
@@ -129,13 +129,12 @@ dependencies {
 
     implementation "io.reactivex.rxjava2:rxjava:$rxJava"
     implementation "io.reactivex.rxjava2:rxandroid:$rxAndroid"
-    implementation "com.jakewharton.rxbinding2:rxbinding-appcompat-v7:$rxBinding"
+    implementation "com.jakewharton.rxbinding3:rxbinding-appcompat:$rxBinding"
     implementation "com.tbruyelle.rxpermissions2:rxpermissions:$rxPermisiions@aar"
     implementation "com.akaita.java:rxjava2-debug:$rxJavaDebug"
 
-    implementation "com.arello-mobile:moxy:$moxy"
-    implementation "com.arello-mobile:moxy-app-compat:$moxy"
-    annotationProcessor "com.arello-mobile:moxy-compiler:$moxy"
+    implementation "tech.schoolhelper:moxy-x-androidx:$moxyX"
+    annotationProcessor "tech.schoolhelper:moxy-x-compiler:$moxyX"
 
     implementation "com.squareup.retrofit2:retrofit:$retrofitLibs"
     implementation "com.squareup.retrofit2:converter-gson:$retrofitLibs"
@@ -143,24 +142,15 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:$okhttpLibs"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttpLibs"
 
-    implementation "com.github.bumptech.glide:glide:$glide"
+    implementation "com.github.bumptech.glide:glide:$glide", {
+        exclude group: "com.android.support"
+    }
     annotationProcessor "com.github.bumptech.glide:compiler:$glide"
 
     implementation "com.google.android.gms:play-services-places:$playServices"
     implementation "com.google.firebase:firebase-messaging:$firebaseMessaging"
-//    implementation "com.google.firebase:firebase-core:$firebaseCore"
+    implementation "com.google.firebase:firebase-core:$firebaseCore"
     implementation "com.crashlytics.sdk.android:crashlytics:$crashlyticsVer"
-}
-
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        def requested = details.requested
-        if (requested.group == 'com.android.support') {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion "$supportLib"
-            }
-        }
-    }
 }
 
 apply plugin: 'com.google.gms.google-services'

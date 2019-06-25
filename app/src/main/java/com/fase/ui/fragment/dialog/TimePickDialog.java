@@ -4,8 +4,6 @@ import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.widget.TimePicker;
 
 import com.fase.R;
@@ -15,6 +13,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import timber.log.Timber;
 
 public class TimePickDialog extends BaseDialogFragment implements android.app.TimePickerDialog.OnTimeSetListener {

@@ -1,9 +1,10 @@
 package com.fase.base;
 
 import android.content.Context;
-import android.support.annotation.StringRes;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
+
+import androidx.annotation.StringRes;
+import androidx.appcompat.widget.Toolbar;
 
 public interface BaseActivityCallback {
 

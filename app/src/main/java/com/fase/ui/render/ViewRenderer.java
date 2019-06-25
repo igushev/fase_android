@@ -4,11 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.v4.widget.NestedScrollView;
-import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -79,9 +74,10 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
-import com.jakewharton.rxbinding2.view.RxView;
-import com.jakewharton.rxbinding2.widget.RxTextView;
+import com.jakewharton.rxbinding3.view.RxView;
+import com.jakewharton.rxbinding3.widget.RxTextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -89,6 +85,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.core.widget.NestedScrollView;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
@@ -177,6 +177,7 @@ public class ViewRenderer {
         mCompositeDisposable = null;
     }
 
+    @SuppressWarnings("deprecation")
     private View renderView(Tuple tuple, Orientation orientation, ArrayList<String> idList) {
         boolean isOrientationVertical = orientation == null || orientation == Orientation.VERTICAL;
 
@@ -291,7 +292,7 @@ public class ViewRenderer {
                     .skip(1)
                     .filter(textViewAfterTextChangeEvent -> !elementsUpdating) // filter elementUpdates
                     .flatMap(textViewAfterTextChangeEvent -> mDataManager.putValueUpdate(tuple.getElementId(), getIdListCopyForItem(tuple, idList),
-                            textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "")
+                            textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.getEditable() != null ? textViewAfterTextChangeEvent.getEditable().toString() : "")
                             .toObservable())
                     .compose(RxUtil.applyIoAndMainSchedulers())
                     .onErrorReturn(throwable -> false)
@@ -689,7 +690,7 @@ public class ViewRenderer {
                         .skip(1)
                         .filter(textViewAfterTextChangeEvent -> !elementsUpdating) // filter elementUpdates
                         .map(textViewAfterTextChangeEvent -> {
-                            String dateText = textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.editable() != null ? textViewAfterTextChangeEvent.editable().toString() : "";
+                            String dateText = textViewAfterTextChangeEvent != null && textViewAfterTextChangeEvent.getEditable() != null ? textViewAfterTextChangeEvent.getEditable().toString() : "";
                             if (!TextUtils.isEmpty(dateText)) {
                                 Date date = null;
                                 switch (dateTimePickerElement.getType()) {

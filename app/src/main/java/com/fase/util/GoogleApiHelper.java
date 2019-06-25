@@ -2,7 +2,6 @@ package com.fase.util;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 
 import com.fase.ui.activity.MainActivity;
 import com.google.android.gms.common.ConnectionResult;
@@ -10,8 +9,10 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Places;
 
+import androidx.annotation.NonNull;
 import timber.log.Timber;
 
+@SuppressWarnings("deprecation")
 public class GoogleApiHelper implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     private Context mContext;
@@ -71,7 +72,7 @@ public class GoogleApiHelper implements GoogleApiClient.OnConnectionFailedListen
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Timber.d("onConnectionFailed: connectionResult = " + connectionResult.toString());
+        Timber.d("onConnectionFailed: connectionResult = %s", connectionResult.toString());
     }
 
     public boolean checkPlayServices(MainActivity activity) {

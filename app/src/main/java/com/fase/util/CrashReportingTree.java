@@ -1,10 +1,10 @@
 package com.fase.util;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 
+import androidx.annotation.Nullable;
 import io.fabric.sdk.android.Fabric;
 import timber.log.Timber;
 

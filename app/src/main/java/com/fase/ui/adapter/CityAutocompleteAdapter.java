@@ -2,8 +2,6 @@ package com.fase.ui.adapter;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.style.CharacterStyle;
 import android.text.style.StyleSpan;
 import android.view.View;
@@ -25,8 +23,11 @@ import com.google.android.gms.location.places.Places;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import timber.log.Timber;
 
+@SuppressWarnings("deprecation, unchecked")
 public class CityAutocompleteAdapter extends ArrayAdapter<AutocompletePrediction> implements Filterable {
 
     private ArrayList<AutocompletePrediction> mResultList;
@@ -122,7 +123,7 @@ public class CityAutocompleteAdapter extends ArrayAdapter<AutocompletePrediction
 
             final Status status = autocompletePredictions.getStatus();
             if (!status.isSuccess()) {
-                Timber.e("Error getting autocomplete prediction API call: " + status.toString());
+                Timber.e("Error getting autocomplete prediction API call: %s", status.toString());
                 autocompletePredictions.release();
                 return null;
             }

@@ -7,9 +7,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -33,7 +30,8 @@ import com.fase.ui.fragment.dialog.TimePickDialog;
 import com.fase.ui.render.ViewRenderer;
 import com.fase.ui.viewHolder.MainActivityVH;
 import com.fase.util.RxUtil;
-import com.jakewharton.rxbinding2.support.v7.widget.RxToolbar;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.jakewharton.rxbinding3.appcompat.RxToolbar;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.Calendar;
@@ -41,6 +39,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
 

@@ -13,7 +13,6 @@ import java.util.Locale;
 
 import timber.log.Timber;
 
-
 public class PlaceUtils {
 
     public static com.fase.model.data.Place getPlace(Context context, Place place) {
@@ -55,7 +54,7 @@ public class PlaceUtils {
         try {
             return geocoder.getFromLocation(place.getLatLng().latitude, place.getLatLng().longitude, 1);
         } catch (IOException e) {
-            Timber.e("Error getting place info", e);
+            Timber.e(e, "Error getting place info");
         }
         return null;
     }

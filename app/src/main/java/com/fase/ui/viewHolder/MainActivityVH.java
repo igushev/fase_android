@@ -1,12 +1,14 @@
 package com.fase.ui.viewHolder;
 
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivityVH {
 

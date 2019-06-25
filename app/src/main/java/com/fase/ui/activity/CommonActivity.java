@@ -2,16 +2,16 @@ package com.fase.ui.activity;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.fase.R;
 import com.fase.base.BaseActivity;
+import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.drawerlayout.widget.DrawerLayout;
 import butterknife.BindView;
 
 public abstract class CommonActivity extends BaseActivity implements DrawerLayout.DrawerListener {
