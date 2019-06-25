@@ -50,11 +50,11 @@ android {
             buildConfigField 'String', 'DEVICE_TYPE', '"Android"'
             buildConfigField 'Integer', 'ELEMENT_UPDATE_TIME', '2'
 
-            resValue 'string', 'google_maps_api_key', '"AIzaSyAKgD90oDzfedVS5fH13mbB35RCHdUJ8Y0"' // TODO clear this value
+            resValue 'string', 'google_maps_api_key', '""'
         }
 
         debug {
-            buildConfigField 'String', 'API_HOST', '"http://fase-test-fase-env-test1.us-west-2.elasticbeanstalk.com/"' // TODO revert this
+            buildConfigField 'String', 'API_HOST', '"http://hello-world-fase-env-prod.us-west-2.elasticbeanstalk.com/"'
 
             debuggable true
             signingConfig signingConfigs.debug
