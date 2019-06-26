@@ -8,9 +8,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,6 +19,9 @@ import android.widget.TextView;
 import com.fase.R;
 import com.fase.base.BaseDialogFragment;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 

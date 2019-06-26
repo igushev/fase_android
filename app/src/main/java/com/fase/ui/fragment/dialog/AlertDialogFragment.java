@@ -4,11 +4,12 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.fase.R;
 import com.fase.base.BaseDialogFragment;
+
+import androidx.annotation.NonNull;
 
 public class AlertDialogFragment extends BaseDialogFragment {
 

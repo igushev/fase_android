@@ -8,6 +8,6 @@
               app:behavior_hideable="true"
               app:behavior_peekHeight="56dp"
               android:background="@android:color/white"
-              app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+              app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
 </LinearLayout>

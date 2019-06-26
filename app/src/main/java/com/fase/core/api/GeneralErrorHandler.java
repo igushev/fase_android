@@ -1,6 +1,5 @@
 package com.fase.core.api;
 
-import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
 import com.akaita.java.rxjava2debug.RxJava2Debug;
@@ -11,6 +10,7 @@ import com.fase.model.exception.NoNetworkException;
 import java.lang.ref.WeakReference;
 import java.net.SocketException;
 
+import androidx.annotation.StringRes;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.exceptions.CompositeException;
 import io.reactivex.functions.Consumer;

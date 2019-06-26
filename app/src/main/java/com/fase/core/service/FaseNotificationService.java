@@ -9,11 +9,11 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import com.fase.FaseApp;
 import com.fase.R;
+import com.fase.core.manager.DataManager;
 import com.fase.ui.activity.MainActivity;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import androidx.core.app.NotificationCompat;
 import timber.log.Timber;
 
 public class FaseNotificationService extends FirebaseMessagingService {
@@ -109,6 +110,15 @@ public class FaseNotificationService extends FirebaseMessagingService {
             }
             NotificationChannel notificationChannel = new NotificationChannel(PRIMARY_CHANNEL, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH);
             notificationManager.createNotificationChannel(notificationChannel);
+        }
+    }
+
+    @Override
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+        if (!TextUtils.isEmpty(token)) {
+            DataManager.getInstance().setDeviceToken(token);
+            Timber.d("FCM token " + token);
         }
     }
 }

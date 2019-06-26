@@ -2,13 +2,6 @@ package com.fase.base;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.design.widget.BaseTransientBottomBar;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -17,10 +10,17 @@ import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.fase.R;
 import com.fase.ui.fragment.dialog.AlertDialogFragment;
 import com.fase.ui.fragment.dialog.ProgressDialogFragment;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import androidx.annotation.CallSuper;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;

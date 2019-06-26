@@ -1,8 +1,11 @@
+apply plugin: "com.github.ben-manes.versions"
+
 buildscript {
-    ext.gradleVersion = '3.1.1'
-    ext.realm = '5.1.0'
-    ext.googleServices = '3.2.0'
-    ext.fabric = '1.25.2'
+    ext.gradleVersion = '3.3.1'
+    ext.realm = '5.12.0'
+    ext.googleServices = '4.2.0'
+    ext.fabric = '1.29.0'
+    ext.update_dependency_version = '0.21.0'
 
     repositories {
         google()
@@ -12,17 +15,17 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath "io.realm:realm-gradle-plugin:$realm"
         classpath "com.google.gms:google-services:$googleServices"
         classpath "io.fabric.tools:gradle:$fabric"
+        classpath "com.github.ben-manes:gradle-versions-plugin:$update_dependency_version"
     }
 }
 
 allprojects {
     repositories {
         google()
-        maven { url "https://maven.google.com" }
         jcenter()
         mavenCentral()
     }

@@ -1,13 +1,12 @@
 package com.fase.util;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import com.fase.FaseApp;
 import com.fase.base.BasePresenter;
 import com.fase.base.BaseView;
 import com.fase.model.exception.NoNetworkException;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
 import io.reactivex.MaybeTransformer;

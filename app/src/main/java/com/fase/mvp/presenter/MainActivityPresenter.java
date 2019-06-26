@@ -2,7 +2,6 @@ package com.fase.mvp.presenter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
@@ -31,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;

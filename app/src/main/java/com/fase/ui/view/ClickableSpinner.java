@@ -1,8 +1,9 @@
 package com.fase.ui.view;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatSpinner;
 import android.util.AttributeSet;
+
+import androidx.appcompat.widget.AppCompatSpinner;
 
 /**
  * Spinner extension that calls onItemSelected even when the selection is the same as its previous value
